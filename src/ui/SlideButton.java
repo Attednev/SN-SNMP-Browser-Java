@@ -20,8 +20,10 @@ public class SlideButton extends StackPane {
     public SlideButton(double width, double height) {
         this.width = width;
         this.height = height;
-        this.setWidth(width);
-        this.setHeight(height);
+        this.setMinWidth(width);
+        this.setMinHeight(height);
+        this.setMaxWidth(width);
+        this.setMaxHeight(height);
         this.addInitialItems();
 
     }
