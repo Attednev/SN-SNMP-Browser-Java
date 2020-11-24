@@ -41,7 +41,7 @@ public class TextButton extends StackPane {
     }
 
     public void highlight() {
-        this.setStyle("-fx-border-color: " + ( this.isDarkMode ? "white" : "black") + "; -fx-border-width: 5");
+        this.setStyle("-fx-border-color: " + ( this.isDarkMode ? "white" : "black") + "; -fx-border-width: 1");
         this.highlighted = true;
     }
 
