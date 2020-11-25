@@ -1,4 +1,4 @@
-package main;
+package standard;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -7,11 +7,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.soulwing.snmp.*;
 import ui.NumberField;
 import ui.SlideButton;
 import ui.TextButton;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class Controller {
     @FXML
@@ -37,7 +40,7 @@ public class Controller {
     private boolean scanNetwork = true;
 
     @FXML
-    private void initialize() {
+    private void initialize() throws IOException {
         addDarkModeButton();
         addTextButtons();
         addAddressFields();
@@ -146,8 +149,49 @@ public class Controller {
     }
 
     @FXML
-    private void startSNMPProcess() {
+    public void startSNMPProcess() {
         System.out.println("Start process");
+
+        new Thread(() -> {
+
+            try {
+                Mib mib = MibFactory.getInstance().newMib();
+                mib.load("IP-MIB");
+                mib.load("HOST-RESOURCES-MIB");
+                mib.load("SNMPv2-MIB");
+                mib.load("IF-MIB");
+
+                SimpleSnmpV2cTarget target = new SimpleSnmpV2cTarget();
+                target.setAddress("10.10.30.254");
+
+                String[] communities = { "public", "private" };
+                for (String s : communities) {
+                    target.setCommunity(s);
+
+                    SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
+
+                    final String[] columns = {
+                            "sysDescr", "sysUpTime", "sysContact", "sysName", "sysLocation", "ipAdEntAddr",
+                            "hrStorageUsed", "hrDiskStorageCapacity", "hrStorageAllocationUnits"
+                    };
+                    VarbindCollection row = context.getNext(columns).get();
+                    Map<String, Varbind> map = row.asMap();
+                    map.forEach((key, val) -> {
+                        System.out.println(key + " -> " + val);
+                    });
+                    System.out.println("------------------------");
+                    context.close();
+                }
+
+            } catch (IOException e) {
+                System.err.println("Error while initializing MIB-Module");
+            } catch(Exception e) {
+                System.err.println("Error while retrieving data");
+            }
+        }).start();
+
+
+
     }
 
 }
