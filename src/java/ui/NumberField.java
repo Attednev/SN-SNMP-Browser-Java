@@ -7,13 +7,11 @@ public class NumberField extends TextField {
 
     public NumberField(int maxDigits) {
         super();
-
         this.setFont(new Font("Arial", 25));
         this.setMinWidth(90.0 / 2.7 * maxDigits);
         this.setMinHeight(40);
         this.setMaxWidth(82.0 / 2.7 * maxDigits);
         this.setMaxHeight(40);
-       // this.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
         this.setOnKeyTyped(e -> {
             int keyCode = e.getCharacter().charAt(0);
             if (this.getText().length() > maxDigits || (keyCode > 57 && keyCode != 127) ||

@@ -1,8 +1,9 @@
 package standard;
 
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.soulwing.snmp.*;
@@ -27,6 +28,8 @@ public class Controller {
     private HBox subnetContainer;
     @FXML
     private VBox subnetParent;
+    @FXML
+    private TextField communityField;
 
     private final Mib mib = MibFactory.getInstance().newMib();
     private boolean scanNetwork = true;
@@ -47,28 +50,18 @@ public class Controller {
     }
 
     private void addAddressFields() {
-        this.addressContainer.setPrefWidth(root.getPrefWidth() - textButtons.getPrefWidth());
-        this.addressContainer.getChildren().addAll(new NumberField(3), createLabel("."), new NumberField(3),
-                createLabel("."), new NumberField(3), createLabel("."), new NumberField(3));
-
-        this.subnetContainer.setPrefWidth(root.getPrefWidth() - textButtons.getPrefWidth());
-        this.subnetContainer.getChildren().addAll(createLabel("/"), new NumberField(2));
-    }
-
-    private Label createLabel(String str) {
-        Label label = new Label(str);
-        label.setAlignment(Pos.BOTTOM_CENTER);
-        //label.setStyle("-fx-min-height: 40; -fx-font-size: 30; -fx-text-fill: black");
-        return label;
+        this.addressContainer.getChildren().addAll(
+                new NumberField(3), new Label("."),
+                new NumberField(3), new Label("."),
+                new NumberField(3), new Label("."),
+                new NumberField(3));
+        this.subnetContainer.getChildren().addAll(new Label("/"), new NumberField(2));
     }
 
     private void addDarkModeButton() {
-        double buttonWidth = 90;
-        double buttonHeight = 35;
-        SlideButton btn = new SlideButton(buttonWidth, buttonHeight);
+        SlideButton btn = new SlideButton(90, 35);
         btn.onAction(() -> changeTheme(btn.isOn()));
         buttonContainer.getChildren().add(btn);
-        textButtons.setPrefSize(root.getPrefWidth() - (buttonWidth + 5) * 2, root.getPrefHeight() - (buttonHeight + 5) * 2);
     }
 
     private void addTextButtons() {
@@ -88,7 +81,6 @@ public class Controller {
         });
         btnNetwork.highlight();
         textButtons.getChildren().addAll(btnNetwork, btnDevice);
-        textButtons.setPrefWidth(300);
     }
 
     private void changeTheme(boolean isDarkMode) {
@@ -98,19 +90,23 @@ public class Controller {
 
     @FXML
     public void startSNMPProcess() {
-
-        String ip = "";
-        String community = "";
-        if (scanNetwork) {
-            long netmask = 8;
-            scanNetwork(ip, netmask);
-        } else {
-            sendAsyncSNMPRequest(ip, community);
+        String[] ip = new String[7];
+        for (int i = 0; i < ip.length; i++) {
+            Node node = this.addressContainer.getChildren().get(i);
+            String content = node instanceof Label ? ((Label) node).getText() : ((NumberField) node).getText();
+            ip[i] = content;
         }
+        long netmask = Long.parseLong(((NumberField)this.subnetContainer.getChildren().get(1)).getText());
+        String community = this.communityField.getText();
 
+        if (scanNetwork) {
+            scanNetwork(String.join("", ip), netmask, community);
+        } else {
+            sendAsyncSNMPRequest(String.join("", ip), community);
+        }
     }
 
-    public void scanNetwork(String network, long netmask) {
+    public void scanNetwork(String network, long netmask, String community) {
         String[] split = network.split("\\.");
         long x = Integer.parseInt(split[0]);
         long y = Integer.parseInt(split[1]);
@@ -122,7 +118,7 @@ public class Controller {
         long broadcast = (address / tail + 1) * tail - 1;
 
         for (long add = nw + 1; add < broadcast; ++add) {
-            sendAsyncSNMPRequest(getIP(add), "public");
+            sendAsyncSNMPRequest(getIP(add), community);
         }
     }
 
@@ -144,7 +140,7 @@ public class Controller {
         target.setCommunity(System.getProperty("tnm4j.agent.community", community));
 
         SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
-        List<String> mibList = Arrays.asList("sysDescr", "sysUpTime");
+        List<String> mibList = Arrays.asList("sysName", "sysUpTime", "ipAdEntAddr");
 
         context.asyncGetNext(this::captureSNMPResponse, mibList);
     }
