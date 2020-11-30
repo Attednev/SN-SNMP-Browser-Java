@@ -1,11 +1,6 @@
 package ui;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
 public class NumberField extends TextField {
@@ -18,9 +13,7 @@ public class NumberField extends TextField {
         this.setMinHeight(40);
         this.setMaxWidth(82.0 / 2.7 * maxDigits);
         this.setMaxHeight(40);
-        this.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-        this.setLightMode();
-
+       // this.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
         this.setOnKeyTyped(e -> {
             int keyCode = e.getCharacter().charAt(0);
             if (this.getText().length() > maxDigits || (keyCode > 57 && keyCode != 127) ||
@@ -32,14 +25,6 @@ public class NumberField extends TextField {
                 }
             }
         });
-    }
-
-    public void setDarkMode() {
-        this.setStyle("-fx-border-color: white; -fx-text-fill: white");
-    }
-
-    public void setLightMode() {
-        this.setStyle("-fx-border-color: black; -fx-text-fill: black");
     }
 
 }

@@ -1,0 +1,25 @@
+* {
+    -fx-text-fill: black;
+    -fx-background-color: transparent;
+}
+#root {
+    -fx-background-color: lightgray;
+}
+
+.text-field {
+    -fx-border-color: black;
+}
+
+.label {
+    -fx-min-height: 40;
+    -fx-font-size: 30;
+    -fx-text-fill: black;
+}
+
+.button {
+    -fx-border-color: black;
+}
+
+.highlight {
+    -fx-border-color: black;
+}
