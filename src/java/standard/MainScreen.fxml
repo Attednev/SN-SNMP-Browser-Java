@@ -30,5 +30,4 @@
         </HBox>
         <Button fx:id="startButton" onAction="#startSNMPProcess" style="-fx-font-size: 20; -fx-background-color: transparent; -fx-border-color: black; -fx-text-fill: black; -fx-cursor: HAND" minWidth="400">Next</Button>
     </VBox>
-
 </VBox>

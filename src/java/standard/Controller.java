@@ -14,7 +14,8 @@ import ui.TextButton;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 
 public class Controller {
     @FXML
@@ -37,6 +38,7 @@ public class Controller {
     private Button startButton;
 
     private final ArrayList<Label> menuLabels = new ArrayList<>();
+    private final Mib mib = MibFactory.getInstance().newMib();
     private boolean scanNetwork = true;
 
     @FXML
@@ -44,6 +46,14 @@ public class Controller {
         addDarkModeButton();
         addTextButtons();
         addAddressFields();
+        loadMibModules();
+    }
+
+    private void loadMibModules() throws IOException {
+        this.mib.load("IP-MIB");
+        this.mib.load("HOST-RESOURCES-MIB");
+        this.mib.load("SNMPv2-MIB");
+        this.mib.load("IF-MIB");
     }
 
     private void addAddressFields() {
@@ -67,16 +77,41 @@ public class Controller {
         double buttonWidth = 90;
         double buttonHeight = 35;
         SlideButton btn = new SlideButton(buttonWidth, buttonHeight);
-        btn.onAction(() -> {
-            if (btn.isOn()) {
-                enableDarkMode();
-            } else {
-                enableLightMode();
-            }
-        });
+        btn.onAction(() -> changeTheme(btn.isOn()));
         buttonContainer.getChildren().add(btn);
         textButtons.setPrefSize(root.getPrefWidth() - (buttonWidth + 5) * 2, root.getPrefHeight() - (buttonHeight + 5) * 2);
     }
+
+    private void addTextButtons() {
+        TextButton btnNetwork = new TextButton("Scan network", 300, 75);
+        TextButton btnDevice = new TextButton("Scan device", 300, 75);
+        btnNetwork.setOnMouseClicked(e -> {
+            this.scanNetwork = true;
+            subnetParent.setVisible(true);
+            btnNetwork.highlight();
+            btnDevice.clear();
+        });
+        btnDevice.setOnMouseClicked(e -> {
+            this.scanNetwork = false;
+            subnetParent.setVisible(false);
+            btnDevice.highlight();
+            btnNetwork.clear();
+        });
+        btnNetwork.highlight();
+        textButtons.getChildren().addAll(btnNetwork, btnDevice);
+        textButtons.setPrefWidth(300);
+    }
+
+    private void changeTheme(boolean isDarkMode) {
+        if (isDarkMode) {
+            enableDarkMode();
+        } else {
+            enableLightMode();
+        }
+    }
+
+
+
 
     private void enableDarkMode() {
         root.setStyle("-fx-background-color: rgb(50, 50, 50)");
@@ -128,70 +163,76 @@ public class Controller {
         }
     }
 
-    private void addTextButtons() {
-        TextButton btnNetwork = new TextButton("Scan network", 300, 75);
-        TextButton btnDevice = new TextButton("Scan device", 300, 75);
-        btnNetwork.setOnMouseClicked(e -> {
-            this.scanNetwork = true;
-            subnetParent.setVisible(true);
-            btnNetwork.highlight();
-            btnDevice.clear();
-        });
-        btnDevice.setOnMouseClicked(e -> {
-            this.scanNetwork = false;
-            subnetParent.setVisible(false);
-            btnDevice.highlight();
-            btnNetwork.clear();
-        });
-        btnNetwork.highlight();
-        textButtons.getChildren().addAll(btnNetwork, btnDevice);
-        textButtons.setPrefWidth(300);
-    }
+
+
+
+
 
     @FXML
     public void startSNMPProcess() {
-        System.out.println("Start process");
 
-        new Thread(() -> {
+        String ip = "";
+        String community = "";
+        if (scanNetwork) {
+            long netmask = 8;
+            scanNetwork(ip, netmask);
+        } else {
+            sendAsyncSNMPRequest(ip, community);
+        }
 
-            try {
-                Mib mib = MibFactory.getInstance().newMib();
-                mib.load("IP-MIB");
-                mib.load("HOST-RESOURCES-MIB");
-                mib.load("SNMPv2-MIB");
-                mib.load("IF-MIB");
+    }
 
-                SimpleSnmpV2cTarget target = new SimpleSnmpV2cTarget();
-                target.setAddress("10.10.30.254");
+    public void scanNetwork(String network, long netmask) {
+        String[] split = network.split("\\.");
+        long x = Integer.parseInt(split[0]);
+        long y = Integer.parseInt(split[1]);
+        long z = Integer.parseInt(split[2]);
+        long w = Integer.parseInt(split[3]);
+        long address = (1 << 24) * x + (1 << 16) * y + (1 << 8) * z + w;
+        long tail = 1 << (32 - netmask);
+        long nw = address / tail * tail;
+        long broadcast = (address / tail + 1) * tail - 1;
 
-                String[] communities = { "public", "private" };
-                for (String s : communities) {
-                    target.setCommunity(s);
+        for (long add = nw + 1; add < broadcast; ++add) {
+            sendAsyncSNMPRequest(getIP(add), "public");
+        }
+    }
 
-                    SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
+    private String getIP(long add) {
+        long octet = (1 << 8);
+        long w = add % octet;
+        add /= octet;
+        long z = add % octet;
+        add /= octet;
+        long y = add % octet;
+        add /= octet;
+        long x = add;
+        return (x + "." + y + "." + z + "." + w);
+    }
 
-                    final String[] columns = {
-                            "sysDescr", "sysUpTime", "sysContact", "sysName", "sysLocation", "ipAdEntAddr",
-                            "hrStorageUsed", "hrDiskStorageCapacity", "hrStorageAllocationUnits"
-                    };
-                    VarbindCollection row = context.getNext(columns).get();
-                    Map<String, Varbind> map = row.asMap();
-                    map.forEach((key, val) -> {
-                        System.out.println(key + " -> " + val);
-                    });
-                    System.out.println("------------------------");
-                    context.close();
-                }
+    private void sendAsyncSNMPRequest(String address, String community) {
+        SimpleSnmpV2cTarget target = new SimpleSnmpV2cTarget();
+        target.setAddress(System.getProperty("tnm4j.agent.address", address));
+        target.setCommunity(System.getProperty("tnm4j.agent.community", community));
 
-            } catch (IOException e) {
-                System.err.println("Error while initializing MIB-Module");
-            } catch(Exception e) {
-                System.err.println("Error while retrieving data");
-            }
-        }).start();
+        SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
+        List<String> mibList = Arrays.asList("sysDescr", "sysUpTime");
 
+        context.asyncGetNext(this::captureSNMPResponse, mibList);
+    }
 
-
+    private void captureSNMPResponse(SnmpEvent<VarbindCollection> snmpEvent) {
+        try {
+            VarbindCollection result = snmpEvent.getResponse().get();
+            System.out.format("%s -> %s uptime %s\n",
+                    result.get("ipAdEntAddr"),
+                    result.get("sysName"),
+                    result.get("sysUpTime"));
+        } catch (SnmpException ex) {
+            System.out.println(" -> no response or error");
+        } finally {
+            snmpEvent.getContext().close();
+        }
     }
 
 }
