@@ -18,6 +18,7 @@
 
 .button {
     -fx-border-color: white;
+    -fx-cursor: hand;
 }
 
 .highlight {

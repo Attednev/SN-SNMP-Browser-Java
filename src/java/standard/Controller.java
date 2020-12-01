@@ -2,6 +2,7 @@ package standard;
 
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -12,10 +13,10 @@ import ui.SlideButton;
 import ui.TextButton;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 public class Controller {
+    @FXML
+    private Button backButton;
     @FXML
     private VBox root;
     @FXML
@@ -33,6 +34,8 @@ public class Controller {
 
     private final Mib mib = MibFactory.getInstance().newMib();
     private boolean scanNetwork = true;
+    private VBox menuVBox;
+    private VBox scanVBox;
 
     @FXML
     private void initialize() throws IOException {
@@ -40,6 +43,7 @@ public class Controller {
         addTextButtons();
         addAddressFields();
         loadMibModules();
+        menuVBox = ((VBox)this.root.getChildren().get(1));
     }
 
     private void loadMibModules() throws IOException {
@@ -89,24 +93,50 @@ public class Controller {
     }
 
     @FXML
-    public void startSNMPProcess() {
-        String[] ip = new String[7];
-        for (int i = 0; i < ip.length; i++) {
+    private void backButtonPressed() {
+        changeScene(false);
+    }
+
+    @FXML
+    private void startSNMPProcess() {
+        String[] ipParts = new String[7];
+        for (int i = 0; i < ipParts.length; i++) {
             Node node = this.addressContainer.getChildren().get(i);
             String content = node instanceof Label ? ((Label) node).getText() : ((NumberField) node).getText();
-            ip[i] = content;
+            if (content.equals("")) {
+                return;
+            }
+            ipParts[i] = content;
         }
-        long netmask = Long.parseLong(((NumberField)this.subnetContainer.getChildren().get(1)).getText());
+        String ip = String.join("", ipParts);
         String community = this.communityField.getText();
 
-        if (scanNetwork) {
-            scanNetwork(String.join("", ip), netmask, community);
-        } else {
-            sendAsyncSNMPRequest(String.join("", ip), community);
+        if (!community.equals("")) {
+            String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
+            if (!scanNetwork) {
+                sendAsyncSNMPRequest(ip, community);
+                changeScene(true);
+            } else if (!netmask.equals("")) {
+                scanNetwork(ip, Long.parseLong(netmask), community);
+                changeScene(true);
+            }
         }
     }
 
-    public void scanNetwork(String network, long netmask, String community) {
+    private void changeScene(boolean toScanMenu) {
+        if (toScanMenu) {
+            setScanVBox();
+        }
+        this.backButton.setVisible(toScanMenu);
+        this.root.getChildren().set(1, toScanMenu ? scanVBox : menuVBox);
+    }
+
+    private void setScanVBox() {
+        scanVBox = new VBox();
+        scanVBox.getChildren().add(new Label("test"));
+    }
+
+    private void scanNetwork(String network, long netmask, String community) {
         String[] split = network.split("\\.");
         long x = Integer.parseInt(split[0]);
         long y = Integer.parseInt(split[1]);
@@ -117,7 +147,7 @@ public class Controller {
         long nw = address / tail * tail;
         long broadcast = (address / tail + 1) * tail - 1;
 
-        for (long add = nw + 1; add < broadcast; ++add) {
+        for (long add = nw + 1; add < broadcast; add++) {
             sendAsyncSNMPRequest(getIP(add), community);
         }
     }
@@ -140,9 +170,8 @@ public class Controller {
         target.setCommunity(System.getProperty("tnm4j.agent.community", community));
 
         SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
-        List<String> mibList = Arrays.asList("sysName", "sysUpTime", "ipAdEntAddr");
 
-        context.asyncGetNext(this::captureSNMPResponse, mibList);
+        context.asyncGetNext(this::captureSNMPResponse, "sysName", "sysUpTime", "ipAdEntAddr");
     }
 
     private void captureSNMPResponse(SnmpEvent<VarbindCollection> snmpEvent) {

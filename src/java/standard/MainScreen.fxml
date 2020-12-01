@@ -7,13 +7,17 @@
 <VBox fx:id="root" alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
       minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="standard.Controller">
-    <HBox fx:id="buttonContainer" alignment="TOP_RIGHT">
+    <HBox>
         <HBox.margin>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
         </HBox.margin>
         <VBox.margin>
             <Insets bottom="25.0" left="5.0" right="5.0" top="5.0"/>
         </VBox.margin>
+        <HBox minWidth="395" >
+            <Button fx:id="backButton" minHeight="35" visible="false" onMouseClicked="#backButtonPressed">Back</Button>
+        </HBox>
+        <HBox fx:id="buttonContainer" minWidth="395" alignment="TOP_RIGHT" />
     </HBox>
     <VBox alignment="CENTER" minHeight="450" spacing="40">
         <HBox fx:id="textButtons" alignment="TOP_CENTER" maxHeight="50.0" maxWidth="-Infinity" spacing="10">
