@@ -24,3 +24,12 @@
 .highlight {
     -fx-border-color: black;
 }
+
+#deviceList {
+    -fx-border-color: black;
+    -fx-padding: 5 0;
+}
+
+#deviceList:selected {
+    -fx-background-color: green;
+}

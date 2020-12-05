@@ -24,3 +24,8 @@
 .highlight {
     -fx-border-color: white;
 }
+
+#deviceList {
+    -fx-border-color: white;
+    -fx-padding: 5 0;
+}
