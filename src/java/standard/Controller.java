@@ -18,6 +18,7 @@ import ui.inputField.NumberField;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Controller {
     @FXML
@@ -41,7 +42,7 @@ public class Controller {
     @FXML
     private HBox scanHBox;
     @FXML
-    private ListView<String> deviceList;
+    private ListView<Label> deviceList;
 
     private final Mib mib = MibFactory.getInstance().newMib();
     private boolean scanNetwork = true;
@@ -58,8 +59,19 @@ public class Controller {
 
     private void setDeviceListListener() {
         this.deviceList.getSelectionModel().selectedItemProperty().addListener(
-                (ObservableValue<? extends  String> ov, String oldVal, String newVal) -> {
-                    System.out.println("Show properties of " + newVal);
+                (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
+                    for (DeviceProperties device : this.devices) {
+                        if (device.getIp().equals(newVal.getText())) {
+                            DeviceProperties properties = device;
+                            System.out.println(properties.getProperties());
+                            break;
+                        }
+                    }
+
+                    newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
+                    if (oldVal != null) {
+                        oldVal.setStyle("-fx-font-size: 16px");
+                    }
                 }
         );
     }
@@ -104,7 +116,7 @@ public class Controller {
     }
 
     private void changeTheme(boolean isDarkMode) {
-        String path = "standard/" + (isDarkMode ? "dark" : "light") + "Mode.css";
+        String path = "resources/" + (isDarkMode ? "dark" : "light") + "Mode.css";
         Main.getScene().getStylesheets().set(0, path);
     }
 
@@ -126,6 +138,15 @@ public class Controller {
         }
         String ip = String.join("", ipParts);
         String community = this.communityField.getText();
+
+    /*    Label l1 = new Label("000.000.000.000");
+        l1.setStyle("-fx-font-size: 16px");
+        this.deviceList.getItems().add(l1);
+        for (int i = 0; i < 20; i++) {
+            Label l = new Label(i + "");
+            l.setStyle("-fx-font-size: 16px");
+            this.deviceList.getItems().add(l);
+        }*/
 
         if (!community.equals("")) {
             String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
@@ -189,18 +210,26 @@ public class Controller {
         try {
             VarbindCollection result = snmpEvent.getResponse().get();
 
-            String ip  = String.format("%s", result.get("ipAdEntAddr"));
-            DeviceProperties device = new DeviceProperties(ip);
+            HashMap<String, String> map = new HashMap<>();
+            for (Varbind v : result) {
+                String key = v.getName().split("\\.")[0];
+                String value = v.asString();
+                if (!key.equals("ipAdEntAddr")) {
+                    map.put(key, value);
+                }
+            }
+            String ip = String.format("%s", result.get("ipAdEntAddr"));
+
+            DeviceProperties device = new DeviceProperties(ip, map);
+
             Platform.runLater(() -> {
                 this.devices.add(device);
-                this.deviceList.getItems().add(ip);
+
+                Label label = new Label(ip);
+                label.setStyle("-fx-font-size: 16px");
+                this.deviceList.getItems().add(label);
             });
-           /* System.out.format("%s -> %s uptime %s\n",
-                    result.get("ipAdEntAddr"),
-                    result.get("sysName"),
-                    result.get("sysUpTime"));*/
-        } catch (SnmpException ex) {
-            System.out.println(" -> no response or error");
+        } catch (SnmpException ignore) {
         } finally {
             snmpEvent.getContext().close();
         }
