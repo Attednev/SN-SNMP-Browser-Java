@@ -1,18 +1,23 @@
 package standard;
 
+import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.soulwing.snmp.*;
-import ui.NumberField;
-import ui.SlideButton;
-import ui.TextButton;
+import scanner.DeviceProperties;
+import ui.buttons.SlideButton;
+import ui.buttons.TextButton;
+import ui.inputField.NumberField;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Controller {
     @FXML
@@ -31,11 +36,16 @@ public class Controller {
     private VBox subnetParent;
     @FXML
     private TextField communityField;
+    @FXML
+    private VBox menuVBox;
+    @FXML
+    private HBox scanHBox;
+    @FXML
+    private ListView<String> deviceList;
 
     private final Mib mib = MibFactory.getInstance().newMib();
     private boolean scanNetwork = true;
-    private VBox menuVBox;
-    private VBox scanVBox;
+    private final ArrayList<DeviceProperties> devices = new ArrayList<>();
 
     @FXML
     private void initialize() throws IOException {
@@ -43,7 +53,15 @@ public class Controller {
         addTextButtons();
         addAddressFields();
         loadMibModules();
-        menuVBox = ((VBox)this.root.getChildren().get(1));
+        setDeviceListListener();
+    }
+
+    private void setDeviceListListener() {
+        this.deviceList.getSelectionModel().selectedItemProperty().addListener(
+                (ObservableValue<? extends  String> ov, String oldVal, String newVal) -> {
+                    System.out.println("Show properties of " + newVal);
+                }
+        );
     }
 
     private void loadMibModules() throws IOException {
@@ -55,10 +73,8 @@ public class Controller {
 
     private void addAddressFields() {
         this.addressContainer.getChildren().addAll(
-                new NumberField(3), new Label("."),
-                new NumberField(3), new Label("."),
-                new NumberField(3), new Label("."),
-                new NumberField(3));
+            new NumberField(3), new Label("."), new NumberField(3), new Label("."),
+            new NumberField(3), new Label("."), new NumberField(3));
         this.subnetContainer.getChildren().addAll(new Label("/"), new NumberField(2));
     }
 
@@ -94,7 +110,7 @@ public class Controller {
 
     @FXML
     private void backButtonPressed() {
-        changeScene(false);
+        changeScene();
     }
 
     @FXML
@@ -114,28 +130,23 @@ public class Controller {
         if (!community.equals("")) {
             String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
             if (!scanNetwork) {
+                devices.clear();
                 sendAsyncSNMPRequest(ip, community);
-                changeScene(true);
+                changeScene();
             } else if (!netmask.equals("")) {
+                devices.clear();
                 scanNetwork(ip, Long.parseLong(netmask), community);
-                changeScene(true);
+                changeScene();
             }
         }
     }
 
-    private void changeScene(boolean toScanMenu) {
-        if (toScanMenu) {
-            setScanVBox();
-        }
-        this.backButton.setVisible(toScanMenu);
-        this.root.getChildren().set(1, toScanMenu ? scanVBox : menuVBox);
+    private void changeScene() {
+        this.menuVBox.setVisible(!this.menuVBox.isVisible());
+        this.scanHBox.setVisible(!this.scanHBox.isVisible());
+        this.backButton.setVisible(this.scanHBox.isVisible());
     }
-
-    private void setScanVBox() {
-        scanVBox = new VBox();
-        scanVBox.getChildren().add(new Label("test"));
-    }
-
+    
     private void scanNetwork(String network, long netmask, String community) {
         String[] split = network.split("\\.");
         long x = Integer.parseInt(split[0]);
@@ -177,10 +188,17 @@ public class Controller {
     private void captureSNMPResponse(SnmpEvent<VarbindCollection> snmpEvent) {
         try {
             VarbindCollection result = snmpEvent.getResponse().get();
-            System.out.format("%s -> %s uptime %s\n",
+
+            String ip  = String.format("%s", result.get("ipAdEntAddr"));
+            DeviceProperties device = new DeviceProperties(ip);
+            Platform.runLater(() -> {
+                this.devices.add(device);
+                this.deviceList.getItems().add(ip);
+            });
+           /* System.out.format("%s -> %s uptime %s\n",
                     result.get("ipAdEntAddr"),
                     result.get("sysName"),
-                    result.get("sysUpTime"));
+                    result.get("sysUpTime"));*/
         } catch (SnmpException ex) {
             System.out.println(" -> no response or error");
         } finally {

@@ -1,4 +1,4 @@
-package ui;
+package ui.inputField;
 
 import javafx.scene.control.TextField;
 import javafx.scene.text.Font;

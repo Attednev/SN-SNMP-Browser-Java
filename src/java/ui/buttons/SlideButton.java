@@ -1,4 +1,4 @@
-package ui;
+package ui.buttons;
 
 import javafx.animation.FillTransition;
 import javafx.animation.ParallelTransition;

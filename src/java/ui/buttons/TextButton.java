@@ -1,4 +1,4 @@
-package ui;
+package ui.buttons;
 
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
