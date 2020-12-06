@@ -5,8 +5,8 @@ import java.util.Map;
 
 public class DeviceProperties {
 
-    private String ip;
-    private Map<String, String> properties;
+    private final String ip;
+    private final Map<String, String> properties;
 
     public DeviceProperties(String ip, HashMap<String, String> properties) {
         this.ip = ip;

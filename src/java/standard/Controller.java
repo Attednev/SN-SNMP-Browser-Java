@@ -139,9 +139,6 @@ public class Controller {
         return String.join("", ipParts);
     }
 
-    // TODO: OUTSOURCE SNMP-FUNCTIONS? DUNNO
-    // TODO: ADD OID INPUTBOX IN SCENE
-
     @FXML
     private void backButtonPressed() {
         this.changeScene();
