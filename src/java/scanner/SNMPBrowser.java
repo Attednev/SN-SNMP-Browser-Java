@@ -62,6 +62,9 @@ public class SNMPBrowser {
     }
 
     public static boolean sendAsyncSNMPRequest(String address, String community, String... oid) {
+        if (address.equals("") || community.equals("")) {
+            return false;
+        }
         SimpleSnmpV2cTarget target = new SimpleSnmpV2cTarget();
         target.setAddress(System.getProperty("tnm4j.agent.address", address));
         target.setCommunity(System.getProperty("tnm4j.agent.community", community));
@@ -72,7 +75,11 @@ public class SNMPBrowser {
         Collections.addAll(list, oid);
         list.add("ipAdEntAddr");
 
-        context.asyncGetNext(SNMPBrowser.onResponseFunction, list);
+        try {
+            context.asyncGetNext(SNMPBrowser.onResponseFunction, list);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
         return true;
     }
 

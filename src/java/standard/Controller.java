@@ -39,26 +39,15 @@ public class Controller {
     public ListView<Label> deviceList;
     public TableView<Pair<String, String>> propertyTable;
 
+    private String currentDisplayedDevice = "";
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
-    private String currentDisplayedDevice = "";
 
+// --- SETUP --- //
     public void initialize() throws IOException {
         this.addInitialSceneElements();
         SNMPBrowser.initialize();
         SNMPBrowser.startTrapListener();
-    }
-
-    private void initializePropertyTable() {
-        double[] sizes = {150, 395};
-        String[] texts = {"Mib", "Value"};
-        String[] varNames = {"key", "value"};
-        for (int i = 0; i < texts.length; i++) {
-            TableColumn<Pair<String, String>, String> tc = new TableColumn<>(texts[i]);
-            tc.setPrefWidth(sizes[i]);
-            tc.setCellValueFactory(new PropertyValueFactory<>(varNames[i]));
-            this.propertyTable.getColumns().add(tc);
-        }
     }
 
     private void addInitialSceneElements() {
@@ -67,13 +56,6 @@ public class Controller {
         this.addAddressFields();
         this.setDeviceListListener();
         this.initializePropertyTable();
-    }
-
-    private void addAddressFields() {
-        this.addressContainer.getChildren().addAll(
-                new NumberField(3), new Label("."), new NumberField(3), new Label("."),
-                new NumberField(3), new Label("."), new NumberField(3));
-        this.subnetContainer.getChildren().addAll(new Label("/"), new NumberField(2));
     }
 
     private void addDarkModeButton() {
@@ -101,6 +83,41 @@ public class Controller {
         }
     }
 
+    private void addAddressFields() {
+        this.addressContainer.getChildren().addAll(
+                new NumberField(3), new Label("."), new NumberField(3), new Label("."),
+                new NumberField(3), new Label("."), new NumberField(3));
+        this.subnetContainer.getChildren().addAll(new Label("/"), new NumberField(2));
+    }
+
+    private void setDeviceListListener() {
+        this.deviceList.getSelectionModel().selectedItemProperty().addListener(
+            (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
+                if (newVal != null) {
+                    newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
+                    this.currentDisplayedDevice = newVal.getText();
+                }
+                if (oldVal != null) {
+                    oldVal.setStyle("-fx-font-size: 16px");
+                }
+                this.updatePropertyTable();
+            }
+        );
+    }
+
+    private void initializePropertyTable() {
+        double[] sizes = {150, 395};
+        String[] texts = {"Mib", "Value"};
+        String[] varNames = {"key", "value"};
+        for (int i = 0; i < texts.length; i++) {
+            TableColumn<Pair<String, String>, String> tc = new TableColumn<>(texts[i]);
+            tc.setPrefWidth(sizes[i]);
+            tc.setCellValueFactory(new PropertyValueFactory<>(varNames[i]));
+            this.propertyTable.getColumns().add(tc);
+        }
+    }
+
+// --- UPDATE FUNCTIONS --- //
     private void changeTheme(boolean isDarkMode) {
         String path = "file:src/resources/" + (isDarkMode ? "dark" : "light") + "Mode.css";
         Main.getScene().getStylesheets().set(0, path);
@@ -111,21 +128,6 @@ public class Controller {
         this.scanHBox.setVisible(!this.scanHBox.isVisible());
         this.backButton.setVisible(this.scanHBox.isVisible());
         this.customOIDBox.setVisible(this.scanHBox.isVisible());
-    }
-
-    private void setDeviceListListener() {
-        this.deviceList.getSelectionModel().selectedItemProperty().addListener(
-                (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
-                    this.currentDisplayedDevice = newVal.getText();
-                    this.updatePropertyTable();
-                    if (newVal != null) {
-                        newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
-                    }
-                    if (oldVal != null) {
-                        oldVal.setStyle("-fx-font-size: 16px");
-                    }
-                }
-        );
     }
 
     private void updatePropertyTable() {
@@ -140,6 +142,11 @@ public class Controller {
         }
     }
 
+    public void backButtonPressed() {
+        this.changeScene();
+    }
+
+// --- GATHER DATA FROM SCENE --- //
     private String getIPFromScene() {
         String[] ipParts = new String[7];
         for (int i = 0; i < ipParts.length; i++) {
@@ -153,21 +160,11 @@ public class Controller {
         return String.join("", ipParts);
     }
 
+// --- SNMP CALLS --- //
     public void sendCustomRequest() {
         String request = this.customOIDInput.getText();
         String community = this.communityField.getText();
-        String targetIP = "";
-        for (Pair<String, String> p : this.propertyTable.getItems()) {
-            if (p.getKey().equals("ipAdEntAddr")) {
-                targetIP = p.getValue();
-                break;
-            }
-        }
-        SNMPBrowser.sendAsyncSNMPRequest(targetIP, community, request);
-    }
-
-    public void backButtonPressed() {
-        this.changeScene();
+        SNMPBrowser.sendAsyncSNMPRequest(this.currentDisplayedDevice, community, request);
     }
 
     public void startSNMPProcess() {
