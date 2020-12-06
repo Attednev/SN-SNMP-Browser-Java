@@ -24,21 +24,24 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller {
-    public VBox root;
     public HBox buttonContainer;
     public HBox textButtons;
     public HBox addressContainer;
     public HBox subnetContainer;
     public HBox scanHBox;
+    public HBox customOIDBox;
+    public VBox root;
     public VBox subnetParent;
     public VBox menuVBox;
     public Button backButton;
     public TextField communityField;
+    public TextField customOIDInput;
     public ListView<Label> deviceList;
     public TableView<Pair<String, String>> propertyTable;
 
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
+    private String currentDisplayedDevice = "";
 
     public void initialize() throws IOException {
         this.addInitialSceneElements();
@@ -91,6 +94,9 @@ public class Controller {
                 }
                 btn.highlight();
             });
+            if (i.get() == 0) {
+                btn.highlight();
+            }
             this.textButtons.getChildren().add(btn);
         }
     }
@@ -104,20 +110,14 @@ public class Controller {
         this.menuVBox.setVisible(!this.menuVBox.isVisible());
         this.scanHBox.setVisible(!this.scanHBox.isVisible());
         this.backButton.setVisible(this.scanHBox.isVisible());
+        this.customOIDBox.setVisible(this.scanHBox.isVisible());
     }
 
     private void setDeviceListListener() {
         this.deviceList.getSelectionModel().selectedItemProperty().addListener(
                 (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
-                    for (DeviceProperties device : this.devices) {
-                        if (device.getIp().equals(newVal.getText())) {
-                            this.propertyTable.getItems().clear();
-                            for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
-                                this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
-                            }
-                            break;
-                        }
-                    }
+                    this.currentDisplayedDevice = newVal.getText();
+                    this.updatePropertyTable();
                     if (newVal != null) {
                         newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
                     }
@@ -126,6 +126,18 @@ public class Controller {
                     }
                 }
         );
+    }
+
+    private void updatePropertyTable() {
+        for (DeviceProperties device : this.devices) {
+            if (device.getIp().equals(this.currentDisplayedDevice)) {
+                this.propertyTable.getItems().clear();
+                for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
+                    this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
+                }
+                return;
+            }
+        }
     }
 
     private String getIPFromScene() {
@@ -139,6 +151,19 @@ public class Controller {
             ipParts[i] = content;
         }
         return String.join("", ipParts);
+    }
+
+    public void sendCustomRequest() {
+        String request = this.customOIDInput.getText();
+        String community = this.communityField.getText();
+        String targetIP = "";
+        for (Pair<String, String> p : this.propertyTable.getItems()) {
+            if (p.getKey().equals("ipAdEntAddr")) {
+                targetIP = p.getValue();
+                break;
+            }
+        }
+        SNMPBrowser.sendAsyncSNMPRequest(targetIP, community, request);
     }
 
     public void backButtonPressed() {
@@ -161,11 +186,19 @@ public class Controller {
                 DeviceProperties device = new DeviceProperties(ip, map);
 
                 Platform.runLater(() -> {
-                    this.devices.add(device);
-
+                    for (int i = 0; i < this.deviceList.getItems().size(); i++) {
+                        if (this.deviceList.getItems().get(i).getText().equals(ip)) {
+                            this.devices.get(i).getProperties().putAll(device.getProperties());
+                            if (this.currentDisplayedDevice.equals(ip)) {
+                                this.updatePropertyTable();
+                            }
+                            return;
+                        }
+                    }
                     Label label = new Label(ip);
                     label.setStyle("-fx-font-size: 16px");
                     this.deviceList.getItems().add(label);
+                    this.devices.add(device);
                 });
             } catch (SnmpException ignore) {
             } finally {

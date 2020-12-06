@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="root" alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/1.8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="standard.Controller">
+<VBox fx:id="root" alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="standard.Controller">
     <!-- Header -->
     <HBox>
         <HBox.margin>
@@ -15,7 +15,7 @@
         </VBox.margin>
         <!-- Back button -->
         <HBox minWidth="395">
-            <Button fx:id="backButton" minHeight="35" minWidth="115" onMouseClicked="#backButtonPressed" visible="false">
+            <Button fx:id="backButton" style="-fx-font-size: 18px" minHeight="35" minWidth="115" onMouseClicked="#backButtonPressed" visible="false">
                 Back
                 <HBox.margin>
                     <Insets left="25.0" />
@@ -55,8 +55,7 @@
                     <Label style="-fx-font-size: 25">Community</Label>
                     <TextField fx:id="communityField" maxHeight="40" maxWidth="200" minHeight="40" minWidth="200" style="-fx-font-size: 20">public</TextField>
                 </HBox>
-                <Button minWidth="400" onAction="#startSNMPProcess" style="-fx-font-size: 20; -fx-cursor: HAND">Next
-                </Button>
+                <Button minWidth="400" onAction="#startSNMPProcess" style="-fx-font-size: 20; -fx-cursor: HAND">Next</Button>
             </VBox>
         </VBox>
         <!-- Scan interface -->
@@ -72,16 +71,24 @@
             <!-- Property table -->
             <VBox>
                 <Label>Properties</Label>
-                <TableView fx:id="propertyTable" styleClass="table-view" minWidth="545.0">
+                <TableView fx:id="propertyTable" minWidth="545.0" styleClass="table-view">
                     <placeholder>
                         <Label style="-fx-font-size: 18px">No device selected</Label>
                     </placeholder>
                 </TableView>
                 <HBox.margin>
-                    <Insets left="25.0" bottom="10.0"/>
+                    <Insets bottom="10.0" left="25.0" />
                 </HBox.margin>
             </VBox>
         </HBox>
     </StackPane>
+    <HBox fx:id="customOIDBox" alignment="CENTER_RIGHT" spacing="10" visible="false">
+        <Label style="-fx-font-size: 18px">Custom OID or MIB:</Label>
+        <TextField fx:id="customOIDInput" minWidth="270.0" style="-fx-font-size: 18px" />
+        <Button style="-fx-font-size: 18px" onAction="#sendCustomRequest">Send</Button>
+        <VBox.margin>
+            <Insets right="25.0" top="18" />
+        </VBox.margin>
+    </HBox>
 
 </VBox>

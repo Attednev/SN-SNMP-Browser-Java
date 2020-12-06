@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class SNMPBrowser {
     private final static Mib mib = MibFactory.getInstance().newMib();
@@ -56,16 +58,23 @@ public class SNMPBrowser {
     }
 
     private static boolean sendAsyncSNMPRequest(String address, String community) {
+        return sendAsyncSNMPRequest(address, community, "sysName", "sysUpTime");
+    }
+
+    public static boolean sendAsyncSNMPRequest(String address, String community, String... oid) {
         SimpleSnmpV2cTarget target = new SimpleSnmpV2cTarget();
         target.setAddress(System.getProperty("tnm4j.agent.address", address));
         target.setCommunity(System.getProperty("tnm4j.agent.community", community));
 
         SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
 
-        context.asyncGetNext(SNMPBrowser.onResponseFunction, "sysName", "sysUpTime", "ipAdEntAddr");
+        ArrayList<String> list = new ArrayList<>();
+        Collections.addAll(list, oid);
+        list.add("ipAdEntAddr");
+
+        context.asyncGetNext(SNMPBrowser.onResponseFunction, list);
         return true;
     }
-
 
     public static boolean startScan(String ip, String community, String netmask, boolean scanNetwork) {
         if (ip == null || community.equals("") || (scanNetwork && netmask.equals(""))) {
