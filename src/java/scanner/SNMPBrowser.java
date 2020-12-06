@@ -2,6 +2,9 @@ package scanner;
 
 import org.soulwing.snmp.*;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 
 public class SNMPBrowser {
@@ -9,10 +12,38 @@ public class SNMPBrowser {
     private static SnmpCallback<VarbindCollection> onResponseFunction;
 
     public static void initialize() throws IOException {
-        SNMPBrowser.mib.load("IP-MIB");
-        SNMPBrowser.mib.load("HOST-RESOURCES-MIB");
-        SNMPBrowser.mib.load("SNMPv2-MIB");
-        SNMPBrowser.mib.load("IF-MIB");
+        SNMPBrowser.loadMibFiles();
+        SNMPBrowser.startTrapListener();
+    }
+
+    private static void loadMibFiles() throws IOException {
+        BufferedReader fr = new BufferedReader(new FileReader("src/resources/Mib-List.txt"));
+        String module;
+        while ((module = fr.readLine()) != null) {
+            try {
+                SNMPBrowser.mib.load(module);
+            } catch (FileNotFoundException e) {
+                System.out.println("Module " + module + " not found");
+            }
+        }
+    }
+
+    private static void startTrapListener() {
+        new Thread(() -> {
+            int port = 10162;
+            SnmpListener listener = SnmpFactory.getInstance().newListener(port, mib);
+            try {
+                listener.addHandler(event -> {
+                    System.out.println("<SNMP-Browser> Received notification: " + event);
+                    return true;
+                });
+                Thread.sleep(60000L);
+            } catch (InterruptedException e) {
+                System.err.println("<SNMP-Browser> Stopped listening for Trap packages due to an interrupt");
+            } finally {
+                listener.close();
+            }
+        });
     }
 
     public static boolean startScan(String ip, String community, String netmask, boolean scanNetwork) {
