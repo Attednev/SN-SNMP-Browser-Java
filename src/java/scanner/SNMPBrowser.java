@@ -1,5 +1,6 @@
 package scanner;
 
+import javafx.scene.control.Alert;
 import org.soulwing.snmp.*;
 
 import java.io.BufferedReader;
@@ -13,7 +14,6 @@ public class SNMPBrowser {
 
     public static void initialize() throws IOException {
         SNMPBrowser.loadMibFiles();
-        SNMPBrowser.startTrapListener();
     }
 
     private static void loadMibFiles() throws IOException {
@@ -26,33 +26,6 @@ public class SNMPBrowser {
                 System.out.println("Module " + module + " not found");
             }
         }
-    }
-
-    private static void startTrapListener() {
-        new Thread(() -> {
-            int port = 10162;
-            SnmpListener listener = SnmpFactory.getInstance().newListener(port, mib);
-            try {
-                listener.addHandler(event -> {
-                    System.out.println("<SNMP-Browser> Received notification: " + event);
-                    return true;
-                });
-                Thread.sleep(60000L);
-            } catch (InterruptedException e) {
-                System.err.println("<SNMP-Browser> Stopped listening for Trap packages due to an interrupt");
-            } finally {
-                listener.close();
-            }
-        });
-    }
-
-    public static boolean startScan(String ip, String community, String netmask, boolean scanNetwork) {
-        if (ip == null || community.equals("") || (scanNetwork && netmask.equals(""))) {
-            return false;
-        } else if (scanNetwork) {
-            return SNMPBrowser.scanNetwork(ip, Long.parseLong(netmask), community);
-        }
-        return SNMPBrowser.sendAsyncSNMPRequest(ip, community);
     }
 
     private static boolean scanNetwork(String network, long netmask, String community) {
@@ -93,8 +66,39 @@ public class SNMPBrowser {
         return true;
     }
 
+
+    public static boolean startScan(String ip, String community, String netmask, boolean scanNetwork) {
+        if (ip == null || community.equals("") || (scanNetwork && netmask.equals(""))) {
+            return false;
+        } else if (scanNetwork) {
+            return SNMPBrowser.scanNetwork(ip, Long.parseLong(netmask), community);
+        }
+        return SNMPBrowser.sendAsyncSNMPRequest(ip, community);
+    }
+
     public static void onResponse(SnmpCallback<VarbindCollection> onResponseFunction) {
         SNMPBrowser.onResponseFunction = onResponseFunction;
+    }
+
+    public static void startTrapListener() {
+        new Thread(() -> {
+            SnmpListener listener = SnmpFactory.getInstance().newListener(10162, mib);
+            try {
+                listener.addHandler(event -> {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("SNMP-Trap");
+                    alert.setHeaderText(null);
+                    alert.setContentText("" + event);
+                    alert.show();
+                    return true;
+                });
+                Thread.sleep(60000L);
+            } catch (InterruptedException e) {
+                System.err.println("<SNMP-Browser> Stopped listening for Trap packages due to an interrupt");
+            } finally {
+                listener.close();
+            }
+        });
     }
 
 }

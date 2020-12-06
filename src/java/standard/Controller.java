@@ -2,14 +2,15 @@ package standard;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
-import org.soulwing.snmp.*;
+import org.soulwing.snmp.SnmpException;
+import org.soulwing.snmp.Varbind;
+import org.soulwing.snmp.VarbindCollection;
 import scanner.DeviceProperties;
 import scanner.SNMPBrowser;
 import ui.buttons.SlideButton;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller {
+    public VBox root;
     public HBox buttonContainer;
     public HBox textButtons;
     public HBox addressContainer;
@@ -38,10 +40,10 @@ public class Controller {
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
 
-    @FXML
-    private void initialize() throws IOException {
+    public void initialize() throws IOException {
         this.addInitialSceneElements();
         SNMPBrowser.initialize();
+        SNMPBrowser.startTrapListener();
     }
 
     private void initializePropertyTable() {
@@ -139,13 +141,11 @@ public class Controller {
         return String.join("", ipParts);
     }
 
-    @FXML
-    private void backButtonPressed() {
+    public void backButtonPressed() {
         this.changeScene();
     }
 
-    @FXML
-    private void startSNMPProcess() {
+    public void startSNMPProcess() {
         SNMPBrowser.onResponse(snmpEvent -> {
             try {
                 VarbindCollection result = snmpEvent.getResponse().get();
