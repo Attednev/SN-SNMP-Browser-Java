@@ -4,12 +4,11 @@ import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Pair;
 import org.soulwing.snmp.*;
 import scanner.DeviceProperties;
 import ui.buttons.SlideButton;
@@ -19,6 +18,7 @@ import ui.inputField.NumberField;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Controller {
     @FXML
@@ -43,6 +43,8 @@ public class Controller {
     private HBox scanHBox;
     @FXML
     private ListView<Label> deviceList;
+    @FXML
+    private TableView<Pair<String, String>> propertyTable;
 
     private final Mib mib = MibFactory.getInstance().newMib();
     private boolean scanNetwork = true;
@@ -55,15 +57,40 @@ public class Controller {
         addAddressFields();
         loadMibModules();
         setDeviceListListener();
+
+        TableColumn mi = new TableColumn("Mib");
+        mi.setPrefWidth(200);
+        mi.setCellValueFactory(
+                new PropertyValueFactory<Pair<String, String>, String>("key"));
+        TableColumn va = new TableColumn("Value");
+        va.setPrefWidth(200);
+        va.setCellValueFactory(
+                new PropertyValueFactory<Pair<String, String>, String>("value"));
+
+        propertyTable.getColumns().addAll(mi, va);
+
+
+       /* TableColumn<String, String> n1   = new TableColumn<>("Customer");
+        TableColumn<String, String> n2 = new TableColumn<>("Customer No");
+        TableColumn<String, String> full = new TableColumn<>();
+        full.getColumns().add(n1);
+        full.getColumns().add(n2);
+        this.propertyTable.getColumns().add(full);*/
     }
+
+    // TODO: OUTSOURCE SNMP-FUNCTIONS? DUNNO
+    // TODO: ADD OID INPUTBOX IN SCENE
 
     private void setDeviceListListener() {
         this.deviceList.getSelectionModel().selectedItemProperty().addListener(
                 (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
                     for (DeviceProperties device : this.devices) {
                         if (device.getIp().equals(newVal.getText())) {
-                            DeviceProperties properties = device;
-                            System.out.println(properties.getProperties());
+                            // TODO: PRINT PROPERTIES
+                            this.propertyTable.getItems().clear();
+                            for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
+                                this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
+                            }
                             break;
                         }
                     }
@@ -116,7 +143,7 @@ public class Controller {
     }
 
     private void changeTheme(boolean isDarkMode) {
-        String path = "resources/" + (isDarkMode ? "dark" : "light") + "Mode.css";
+        String path = "file:src/resources/" + (isDarkMode ? "dark" : "light") + "Mode.css";
         Main.getScene().getStylesheets().set(0, path);
     }
 
@@ -139,6 +166,7 @@ public class Controller {
         String ip = String.join("", ipParts);
         String community = this.communityField.getText();
 
+        // TODO: CHECK OVERFLOW
     /*    Label l1 = new Label("000.000.000.000");
         l1.setStyle("-fx-font-size: 16px");
         this.deviceList.getItems().add(l1);
@@ -214,9 +242,7 @@ public class Controller {
             for (Varbind v : result) {
                 String key = v.getName().split("\\.")[0];
                 String value = v.asString();
-                if (!key.equals("ipAdEntAddr")) {
-                    map.put(key, value);
-                }
+                map.put(key, value);
             }
             String ip = String.format("%s", result.get("ipAdEntAddr"));
 
