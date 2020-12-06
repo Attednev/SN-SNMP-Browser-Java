@@ -69,6 +69,7 @@
                     <Insets left="25.0" />
                 </HBox.margin>
             </VBox>
+            <!-- Property table -->
             <VBox>
                 <Label>Properties</Label>
                 <TableView fx:id="propertyTable" styleClass="table-view" minWidth="545.0">
