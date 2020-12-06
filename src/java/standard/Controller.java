@@ -57,25 +57,18 @@ public class Controller {
         addAddressFields();
         loadMibModules();
         setDeviceListListener();
+        initializePropertyTable();
+    }
 
-        TableColumn mi = new TableColumn("Mib");
-        mi.setPrefWidth(200);
-        mi.setCellValueFactory(
-                new PropertyValueFactory<Pair<String, String>, String>("key"));
-        TableColumn va = new TableColumn("Value");
-        va.setPrefWidth(200);
-        va.setCellValueFactory(
-                new PropertyValueFactory<Pair<String, String>, String>("value"));
+    private void initializePropertyTable() {
+        TableColumn<Pair<String, String>, String> mi = new TableColumn<>("Mib");
+        mi.setPrefWidth(150);
+        mi.setCellValueFactory(new PropertyValueFactory<>("key"));
+        TableColumn<Pair<String, String>, String> va = new TableColumn<>("Value");
+        va.setPrefWidth(395);
+        va.setCellValueFactory(new PropertyValueFactory<>("value"));
 
         propertyTable.getColumns().addAll(mi, va);
-
-
-       /* TableColumn<String, String> n1   = new TableColumn<>("Customer");
-        TableColumn<String, String> n2 = new TableColumn<>("Customer No");
-        TableColumn<String, String> full = new TableColumn<>();
-        full.getColumns().add(n1);
-        full.getColumns().add(n2);
-        this.propertyTable.getColumns().add(full);*/
     }
 
     // TODO: OUTSOURCE SNMP-FUNCTIONS? DUNNO

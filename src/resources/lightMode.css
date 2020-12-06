@@ -38,3 +38,7 @@
 .table-view {
     -fx-border-color: black;
 }
+
+.table-view * {
+    -fx-font-size: 18px;
+}
