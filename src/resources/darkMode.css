@@ -30,6 +30,29 @@
     -fx-padding: 5 0;
 }
 
+#deviceList .scroll-bar:horizontal, #deviceList .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+#deviceList .increment-button ,#deviceList .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+#deviceList .scroll-bar:horizontal .track ,
+#deviceList .scroll-bar:vertical .track{
+    -fx-background-color: transparent;
+    -fx-border-color: white;
+    -fx-background-radius: 0em;
+}
+
+#deviceList .scroll-bar:horizontal .thumb,
+#deviceList .scroll-bar:vertical .thumb {
+    -fx-background-color: derive(black,90%);
+    -fx-background-insets: 0, 0, 0;
+    -fx-background-radius: 0em;
+}
+
 #deviceList *:selected {
     -fx-background-color: #25877d;
     -fx-border-color: white;

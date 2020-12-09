@@ -8,9 +8,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
-import org.soulwing.snmp.SnmpException;
-import org.soulwing.snmp.Varbind;
-import org.soulwing.snmp.VarbindCollection;
 import scanner.DeviceProperties;
 import scanner.SNMPBrowser;
 import ui.buttons.SlideButton;
@@ -19,7 +16,6 @@ import ui.inputField.NumberField;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,7 +32,7 @@ public class Controller {
     public Button backButton;
     public TextField communityField;
     public TextField customOIDInput;
-    public ListView<Label> deviceList;
+    public ListView<String> deviceList;
     public TableView<Pair<String, String>> propertyTable;
 
     private String currentDisplayedDevice = "";
@@ -92,13 +88,13 @@ public class Controller {
 
     private void setDeviceListListener() {
         this.deviceList.getSelectionModel().selectedItemProperty().addListener(
-            (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
+            (ObservableValue<? extends String> ov, String oldVal, String newVal) -> {
                 if (newVal != null) {
-                    newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
-                    this.currentDisplayedDevice = newVal.getText();
+                    //newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
+                    this.currentDisplayedDevice = newVal;//.getText();
                 }
                 if (oldVal != null) {
-                    oldVal.setStyle("-fx-font-size: 16px");
+                    //oldVal.setStyle("-fx-font-size: 16px");
                 }
                 this.updatePropertyTable();
             }
@@ -169,7 +165,7 @@ public class Controller {
 
     public void startSNMPProcess() {
         SNMPBrowser.onResponse(snmpEvent -> {
-            try {
+           /* try {
                 VarbindCollection result = snmpEvent.getResponse().get();
 
                 HashMap<String, String> map = new HashMap<>();
@@ -200,7 +196,7 @@ public class Controller {
             } catch (SnmpException ignore) {
             } finally {
                 snmpEvent.getContext().close();
-            }
+            }*/
         });
 
 
@@ -209,18 +205,17 @@ public class Controller {
         String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
         this.devices.clear();
         this.deviceList.getItems().clear();
-        if (SNMPBrowser.startScan(ip, community, netmask, this.scanNetwork)) {
+   //     if (SNMPBrowser.startScan(ip, community, netmask, this.scanNetwork)) {
 
-         /*   Label l1 = new Label("000.000.000.000");
-            l1.setStyle("-fx-font-size: 16px");
-            this.deviceList.getItems().add(l1);
+
+        Platform.runLater(() -> {
             for (int i = 0; i < 20; i++) {
-                Label l = new Label(i + "");
-                l.setStyle("-fx-font-size: 16px");
-                this.deviceList.getItems().add(l);
-            }*/
-            this.changeScene();
-        }
+                this.deviceList.getItems().add("" + i);
+            }
+        });
+
+        this.changeScene();
+     //   }
 
     }
 
