@@ -13,14 +13,16 @@
         <VBox.margin>
             <Insets bottom="25.0" left="5.0" right="5.0" top="5.0" />
         </VBox.margin>
+        <!-- Back button -->
         <HBox minWidth="395">
-            <Button fx:id="backButton" minHeight="35" minWidth="115" onMouseClicked="#backButtonPressed" visible="false">
+            <Button fx:id="backButton" style="-fx-font-size: 18px" minHeight="35" minWidth="115" onMouseClicked="#backButtonPressed" visible="false">
                 Back
                 <HBox.margin>
                     <Insets left="25.0" />
                 </HBox.margin>
             </Button>
         </HBox>
+        <!-- Dark mode button-->
         <HBox fx:id="buttonContainer" alignment="TOP_RIGHT" minWidth="370">
             <HBox.margin>
                 <Insets right="25.0" />
@@ -53,8 +55,7 @@
                     <Label style="-fx-font-size: 25">Community</Label>
                     <TextField fx:id="communityField" maxHeight="40" maxWidth="200" minHeight="40" minWidth="200" style="-fx-font-size: 20">public</TextField>
                 </HBox>
-                <Button minWidth="400" onAction="#startSNMPProcess" style="-fx-font-size: 20; -fx-cursor: HAND">Next
-                </Button>
+                <Button minWidth="400" onAction="#startSNMPProcess" style="-fx-font-size: 20; -fx-cursor: HAND">Next</Button>
             </VBox>
         </VBox>
         <!-- Scan interface -->
@@ -67,7 +68,27 @@
                     <Insets left="25.0" />
                 </HBox.margin>
             </VBox>
+            <!-- Property table -->
+            <VBox>
+                <Label>Properties</Label>
+                <TableView fx:id="propertyTable" minWidth="545.0" styleClass="table-view">
+                    <placeholder>
+                        <Label style="-fx-font-size: 18px">No device selected</Label>
+                    </placeholder>
+                </TableView>
+                <HBox.margin>
+                    <Insets bottom="10.0" left="25.0" />
+                </HBox.margin>
+            </VBox>
         </HBox>
     </StackPane>
+    <HBox fx:id="customOIDBox" alignment="CENTER_RIGHT" spacing="10" visible="false">
+        <Label style="-fx-font-size: 18px">Custom OID or MIB:</Label>
+        <TextField fx:id="customOIDInput" minWidth="270.0" style="-fx-font-size: 18px" />
+        <Button style="-fx-font-size: 18px" onAction="#sendCustomRequest">Send</Button>
+        <VBox.margin>
+            <Insets right="25.0" top="18" />
+        </VBox.margin>
+    </HBox>
 
 </VBox>

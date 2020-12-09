@@ -1,12 +1,11 @@
 package scanner;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class DeviceProperties {
 
-    private String ip;
-    private Map<String, String> properties;
+    private final String ip;
+    private final HashMap<String, String> properties;
 
     public DeviceProperties(String ip, HashMap<String, String> properties) {
         this.ip = ip;
@@ -17,7 +16,7 @@ public class DeviceProperties {
         return this.ip;
     }
 
-    public Map<String, String> getProperties() {
+    public HashMap<String, String> getProperties() {
         return this.properties;
     }
 

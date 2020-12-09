@@ -12,14 +12,17 @@ public class NumberField extends TextField {
         this.setMinHeight(40);
         this.setMaxWidth(82.0 / 2.7 * maxDigits);
         this.setMaxHeight(40);
-        this.setOnKeyTyped(e -> {
-            int keyCode = e.getCharacter().charAt(0);
-            if (this.getText().length() > maxDigits || (keyCode > 57 && keyCode != 127) ||
-                    (keyCode < 48 && keyCode != 8 && keyCode != 9)) {
-                int pos = this.getCaretPosition() - 1;
-                if (pos >= 0) {
-                    this.setText(this.getText().substring(0, pos) + this.getText().substring(pos + 1));
-                    this.positionCaret(pos);
+        this.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (this.getText().length() > maxDigits) {
+                this.setText(this.getText().substring(0, maxDigits));
+            } else {
+                try {
+                    if (!this.getText().equals("")) {
+                        Integer.parseInt(this.getText());
+                    }
+                    this.setText(newValue);
+                } catch (NumberFormatException | StackOverflowError f) {
+                    this.setText(oldValue);
                 }
             }
         });

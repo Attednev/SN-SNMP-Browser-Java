@@ -30,6 +30,15 @@
     -fx-padding: 5 0;
 }
 
-#deviceList:selected {
-    -fx-background-color: green;
+#deviceList *:selected {
+    -fx-background-color: turquoise;
+    -fx-border-color: black;
+}
+
+.table-view {
+    -fx-border-color: black;
+}
+
+.table-view * {
+    -fx-font-size: 18px;
 }

@@ -2,16 +2,17 @@ package standard;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.soulwing.snmp.*;
+import javafx.util.Pair;
+import org.soulwing.snmp.SnmpException;
+import org.soulwing.snmp.Varbind;
+import org.soulwing.snmp.VarbindCollection;
 import scanner.DeviceProperties;
+import scanner.SNMPBrowser;
 import ui.buttons.SlideButton;
 import ui.buttons.TextButton;
 import ui.inputField.NumberField;
@@ -19,220 +20,208 @@ import ui.inputField.NumberField;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller {
-    @FXML
-    private Button backButton;
-    @FXML
-    private VBox root;
-    @FXML
-    private HBox buttonContainer;
-    @FXML
-    private HBox textButtons;
-    @FXML
-    private HBox addressContainer;
-    @FXML
-    private HBox subnetContainer;
-    @FXML
-    private VBox subnetParent;
-    @FXML
-    private TextField communityField;
-    @FXML
-    private VBox menuVBox;
-    @FXML
-    private HBox scanHBox;
-    @FXML
-    private ListView<Label> deviceList;
+    public HBox buttonContainer;
+    public HBox textButtons;
+    public HBox addressContainer;
+    public HBox subnetContainer;
+    public HBox scanHBox;
+    public HBox customOIDBox;
+    public VBox root;
+    public VBox subnetParent;
+    public VBox menuVBox;
+    public Button backButton;
+    public TextField communityField;
+    public TextField customOIDInput;
+    public ListView<Label> deviceList;
+    public TableView<Pair<String, String>> propertyTable;
 
-    private final Mib mib = MibFactory.getInstance().newMib();
+    private String currentDisplayedDevice = "";
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
 
-    @FXML
-    private void initialize() throws IOException {
-        addDarkModeButton();
-        addTextButtons();
-        addAddressFields();
-        loadMibModules();
-        setDeviceListListener();
+// --- SETUP --- //
+    public void initialize() throws IOException {
+        this.addInitialSceneElements();
+        SNMPBrowser.initialize();
+        SNMPBrowser.startTrapListener();
     }
 
-    private void setDeviceListListener() {
-        this.deviceList.getSelectionModel().selectedItemProperty().addListener(
-                (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
-                    for (DeviceProperties device : this.devices) {
-                        if (device.getIp().equals(newVal.getText())) {
-                            DeviceProperties properties = device;
-                            System.out.println(properties.getProperties());
-                            break;
-                        }
-                    }
-
-                    newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
-                    if (oldVal != null) {
-                        oldVal.setStyle("-fx-font-size: 16px");
-                    }
-                }
-        );
-    }
-
-    private void loadMibModules() throws IOException {
-        this.mib.load("IP-MIB");
-        this.mib.load("HOST-RESOURCES-MIB");
-        this.mib.load("SNMPv2-MIB");
-        this.mib.load("IF-MIB");
-    }
-
-    private void addAddressFields() {
-        this.addressContainer.getChildren().addAll(
-            new NumberField(3), new Label("."), new NumberField(3), new Label("."),
-            new NumberField(3), new Label("."), new NumberField(3));
-        this.subnetContainer.getChildren().addAll(new Label("/"), new NumberField(2));
+    private void addInitialSceneElements() {
+        this.addDarkModeButton();
+        this.addTextButtons();
+        this.addAddressFields();
+        this.setDeviceListListener();
+        this.initializePropertyTable();
     }
 
     private void addDarkModeButton() {
         SlideButton btn = new SlideButton(90, 35);
         btn.onAction(() -> changeTheme(btn.isOn()));
-        buttonContainer.getChildren().add(btn);
+        this.buttonContainer.getChildren().add(btn);
     }
 
     private void addTextButtons() {
-        TextButton btnNetwork = new TextButton("Scan network", 300, 75);
-        TextButton btnDevice = new TextButton("Scan device", 300, 75);
-        btnNetwork.setOnMouseClicked(e -> {
-            this.scanNetwork = true;
-            subnetParent.setVisible(true);
-            btnNetwork.highlight();
-            btnDevice.clear();
-        });
-        btnDevice.setOnMouseClicked(e -> {
-            this.scanNetwork = false;
-            subnetParent.setVisible(false);
-            btnDevice.highlight();
-            btnNetwork.clear();
-        });
-        btnNetwork.highlight();
-        textButtons.getChildren().addAll(btnNetwork, btnDevice);
+        String[] captions = {"Scan network", "Scan device"};
+        for (AtomicInteger i = new AtomicInteger(0); i.get() < captions.length; i.set(i.get() + 1)) {
+            TextButton btn = new TextButton(captions[i.get()], 300, 75);
+            btn.setOnMouseClicked(e -> {
+                this.scanNetwork = (i.get() == 0);
+                this.subnetParent.setVisible(this.scanNetwork);
+                for (Node t : this.textButtons.getChildren()) {
+                    ((TextButton)t).clear();
+                }
+                btn.highlight();
+            });
+            if (i.get() == 0) {
+                btn.highlight();
+            }
+            this.textButtons.getChildren().add(btn);
+        }
     }
 
+    private void addAddressFields() {
+        this.addressContainer.getChildren().addAll(
+                new NumberField(3), new Label("."), new NumberField(3), new Label("."),
+                new NumberField(3), new Label("."), new NumberField(3));
+        this.subnetContainer.getChildren().addAll(new Label("/"), new NumberField(2));
+    }
+
+    private void setDeviceListListener() {
+        this.deviceList.getSelectionModel().selectedItemProperty().addListener(
+            (ObservableValue<? extends Label> ov, Label oldVal, Label newVal) -> {
+                if (newVal != null) {
+                    newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
+                    this.currentDisplayedDevice = newVal.getText();
+                }
+                if (oldVal != null) {
+                    oldVal.setStyle("-fx-font-size: 16px");
+                }
+                this.updatePropertyTable();
+            }
+        );
+    }
+
+    private void initializePropertyTable() {
+        double[] sizes = {150, 395};
+        String[] texts = {"Mib", "Value"};
+        String[] varNames = {"key", "value"};
+        for (int i = 0; i < texts.length; i++) {
+            TableColumn<Pair<String, String>, String> tc = new TableColumn<>(texts[i]);
+            tc.setPrefWidth(sizes[i]);
+            tc.setCellValueFactory(new PropertyValueFactory<>(varNames[i]));
+            this.propertyTable.getColumns().add(tc);
+        }
+    }
+
+// --- UPDATE FUNCTIONS --- //
     private void changeTheme(boolean isDarkMode) {
-        String path = "resources/" + (isDarkMode ? "dark" : "light") + "Mode.css";
+        String path = "file:src/resources/" + (isDarkMode ? "dark" : "light") + "Mode.css";
         Main.getScene().getStylesheets().set(0, path);
-    }
-
-    @FXML
-    private void backButtonPressed() {
-        changeScene();
-    }
-
-    @FXML
-    private void startSNMPProcess() {
-        String[] ipParts = new String[7];
-        for (int i = 0; i < ipParts.length; i++) {
-            Node node = this.addressContainer.getChildren().get(i);
-            String content = node instanceof Label ? ((Label) node).getText() : ((NumberField) node).getText();
-            if (content.equals("")) {
-                return;
-            }
-            ipParts[i] = content;
-        }
-        String ip = String.join("", ipParts);
-        String community = this.communityField.getText();
-
-    /*    Label l1 = new Label("000.000.000.000");
-        l1.setStyle("-fx-font-size: 16px");
-        this.deviceList.getItems().add(l1);
-        for (int i = 0; i < 20; i++) {
-            Label l = new Label(i + "");
-            l.setStyle("-fx-font-size: 16px");
-            this.deviceList.getItems().add(l);
-        }*/
-
-        if (!community.equals("")) {
-            String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
-            if (!scanNetwork) {
-                devices.clear();
-                sendAsyncSNMPRequest(ip, community);
-                changeScene();
-            } else if (!netmask.equals("")) {
-                devices.clear();
-                scanNetwork(ip, Long.parseLong(netmask), community);
-                changeScene();
-            }
-        }
     }
 
     private void changeScene() {
         this.menuVBox.setVisible(!this.menuVBox.isVisible());
         this.scanHBox.setVisible(!this.scanHBox.isVisible());
         this.backButton.setVisible(this.scanHBox.isVisible());
+        this.customOIDBox.setVisible(this.scanHBox.isVisible());
     }
-    
-    private void scanNetwork(String network, long netmask, String community) {
-        String[] split = network.split("\\.");
-        long x = Integer.parseInt(split[0]);
-        long y = Integer.parseInt(split[1]);
-        long z = Integer.parseInt(split[2]);
-        long w = Integer.parseInt(split[3]);
-        long address = (1 << 24) * x + (1 << 16) * y + (1 << 8) * z + w;
-        long tail = 1 << (32 - netmask);
-        long nw = address / tail * tail;
-        long broadcast = (address / tail + 1) * tail - 1;
 
-        for (long add = nw + 1; add < broadcast; add++) {
-            sendAsyncSNMPRequest(getIP(add), community);
+    private void updatePropertyTable() {
+        for (DeviceProperties device : this.devices) {
+            if (device.getIp().equals(this.currentDisplayedDevice)) {
+                this.propertyTable.getItems().clear();
+                for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
+                    this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
+                }
+                return;
+            }
         }
     }
 
-    private String getIP(long add) {
-        long octet = (1 << 8);
-        long w = add % octet;
-        add /= octet;
-        long z = add % octet;
-        add /= octet;
-        long y = add % octet;
-        add /= octet;
-        long x = add;
-        return (x + "." + y + "." + z + "." + w);
+    public void backButtonPressed() {
+        this.changeScene();
     }
 
-    private void sendAsyncSNMPRequest(String address, String community) {
-        SimpleSnmpV2cTarget target = new SimpleSnmpV2cTarget();
-        target.setAddress(System.getProperty("tnm4j.agent.address", address));
-        target.setCommunity(System.getProperty("tnm4j.agent.community", community));
-
-        SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
-
-        context.asyncGetNext(this::captureSNMPResponse, "sysName", "sysUpTime", "ipAdEntAddr");
+// --- GATHER DATA FROM SCENE --- //
+    private String getIPFromScene() {
+        String[] ipParts = new String[7];
+        for (int i = 0; i < ipParts.length; i++) {
+            Node node = this.addressContainer.getChildren().get(i);
+            String content = node instanceof Label ? ((Label) node).getText() : ((NumberField) node).getText();
+            if (content.equals("")) {
+                return null;
+            }
+            ipParts[i] = content;
+        }
+        return String.join("", ipParts);
     }
 
-    private void captureSNMPResponse(SnmpEvent<VarbindCollection> snmpEvent) {
-        try {
-            VarbindCollection result = snmpEvent.getResponse().get();
+// --- SNMP CALLS --- //
+    public void sendCustomRequest() {
+        String request = this.customOIDInput.getText();
+        String community = this.communityField.getText();
+        SNMPBrowser.sendAsyncSNMPRequest(this.currentDisplayedDevice, community, request);
+    }
 
-            HashMap<String, String> map = new HashMap<>();
-            for (Varbind v : result) {
-                String key = v.getName().split("\\.")[0];
-                String value = v.asString();
-                if (!key.equals("ipAdEntAddr")) {
+    public void startSNMPProcess() {
+        SNMPBrowser.onResponse(snmpEvent -> {
+            try {
+                VarbindCollection result = snmpEvent.getResponse().get();
+
+                HashMap<String, String> map = new HashMap<>();
+                for (Varbind v : result) {
+                    String key = v.getName().split("\\.")[0];
+                    String value = v.asString();
                     map.put(key, value);
                 }
+                String ip = String.format("%s", result.get("ipAdEntAddr"));
+
+                DeviceProperties device = new DeviceProperties(ip, map);
+
+                Platform.runLater(() -> {
+                    for (int i = 0; i < this.deviceList.getItems().size(); i++) {
+                        if (this.deviceList.getItems().get(i).getText().equals(ip)) {
+                            this.devices.get(i).getProperties().putAll(device.getProperties());
+                            if (this.currentDisplayedDevice.equals(ip)) {
+                                this.updatePropertyTable();
+                            }
+                            return;
+                        }
+                    }
+                    Label label = new Label(ip);
+                    label.setStyle("-fx-font-size: 16px");
+                    this.deviceList.getItems().add(label);
+                    this.devices.add(device);
+                });
+            } catch (SnmpException ignore) {
+            } finally {
+                snmpEvent.getContext().close();
             }
-            String ip = String.format("%s", result.get("ipAdEntAddr"));
+        });
 
-            DeviceProperties device = new DeviceProperties(ip, map);
 
-            Platform.runLater(() -> {
-                this.devices.add(device);
+        String ip = this.getIPFromScene();
+        String community = this.communityField.getText();
+        String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
+        this.devices.clear();
+        this.deviceList.getItems().clear();
+        if (SNMPBrowser.startScan(ip, community, netmask, this.scanNetwork)) {
 
-                Label label = new Label(ip);
-                label.setStyle("-fx-font-size: 16px");
-                this.deviceList.getItems().add(label);
-            });
-        } catch (SnmpException ignore) {
-        } finally {
-            snmpEvent.getContext().close();
+         /*   Label l1 = new Label("000.000.000.000");
+            l1.setStyle("-fx-font-size: 16px");
+            this.deviceList.getItems().add(l1);
+            for (int i = 0; i < 20; i++) {
+                Label l = new Label(i + "");
+                l.setStyle("-fx-font-size: 16px");
+                this.deviceList.getItems().add(l);
+            }*/
+            this.changeScene();
         }
+
     }
 
 }

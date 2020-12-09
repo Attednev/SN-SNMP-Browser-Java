@@ -17,11 +17,11 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("Scene.fxml"));
-        primaryStage.setTitle("SNMP - Browser");
-        primaryStage.setResizable(false);
         scene = new Scene(root);
-        scene.getStylesheets().add("resources/lightMode.css");
+        scene.getStylesheets().add("file:src/resources/lightMode.css");
         primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.setTitle("SNMP - Browser");
         primaryStage.show();
     }
 
