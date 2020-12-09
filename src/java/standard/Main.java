@@ -29,7 +29,7 @@ public class Main extends Application {
         scene = new Scene(root);
         scene.getStylesheets().add("file:src/resources/lightMode.css");
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
+      //  primaryStage.setResizable(false);
         primaryStage.setTitle("SNMP - Browser");
         primaryStage.show();
     }

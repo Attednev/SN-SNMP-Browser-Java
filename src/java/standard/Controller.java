@@ -8,6 +8,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
+import org.soulwing.snmp.Varbind;
+import org.soulwing.snmp.VarbindCollection;
 import scanner.DeviceProperties;
 import scanner.SNMPBrowser;
 import ui.buttons.SlideButton;
@@ -16,6 +18,7 @@ import ui.inputField.NumberField;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -165,38 +168,31 @@ public class Controller {
 
     public void startSNMPProcess() {
         SNMPBrowser.onResponse(snmpEvent -> {
-           /* try {
-                VarbindCollection result = snmpEvent.getResponse().get();
+            VarbindCollection result = snmpEvent.getResponse().get();
 
-                HashMap<String, String> map = new HashMap<>();
-                for (Varbind v : result) {
-                    String key = v.getName().split("\\.")[0];
-                    String value = v.asString();
-                    map.put(key, value);
-                }
-                String ip = String.format("%s", result.get("ipAdEntAddr"));
+            HashMap<String, String> map = new HashMap<>();
+            for (Varbind v : result) {
+                String key = v.getName().split("\\.")[0];
+                String value = v.asString();
+                map.put(key, value);
+            }
+            String ip = String.format("%s", result.get("ipAdEntAddr"));
+            DeviceProperties device = new DeviceProperties(ip, map);
 
-                DeviceProperties device = new DeviceProperties(ip, map);
-
-                Platform.runLater(() -> {
-                    for (int i = 0; i < this.deviceList.getItems().size(); i++) {
-                        if (this.deviceList.getItems().get(i).getText().equals(ip)) {
-                            this.devices.get(i).getProperties().putAll(device.getProperties());
-                            if (this.currentDisplayedDevice.equals(ip)) {
-                                this.updatePropertyTable();
-                            }
-                            return;
+            Platform.runLater(() -> {
+                for (int i = 0; i < this.deviceList.getItems().size(); i++) {
+                    if (this.deviceList.getItems().get(i).equals(ip)) {
+                        this.devices.get(i).getProperties().putAll(device.getProperties());
+                        if (this.currentDisplayedDevice.equals(ip)) {
+                            this.updatePropertyTable();
                         }
+                        return;
                     }
-                    Label label = new Label(ip);
-                    label.setStyle("-fx-font-size: 16px");
-                    this.deviceList.getItems().add(label);
-                    this.devices.add(device);
-                });
-            } catch (SnmpException ignore) {
-            } finally {
-                snmpEvent.getContext().close();
-            }*/
+                }
+                this.deviceList.getItems().add(ip);
+                this.devices.add(device);
+            });
+            snmpEvent.getContext().close();
         });
 
 
@@ -205,17 +201,9 @@ public class Controller {
         String netmask = ((NumberField)this.subnetContainer.getChildren().get(1)).getText();
         this.devices.clear();
         this.deviceList.getItems().clear();
-   //     if (SNMPBrowser.startScan(ip, community, netmask, this.scanNetwork)) {
-
-
-        Platform.runLater(() -> {
-            for (int i = 0; i < 20; i++) {
-                this.deviceList.getItems().add("" + i);
-            }
-        });
-
-        this.changeScene();
-     //   }
+        if (SNMPBrowser.startScan(ip, community, netmask, this.scanNetwork)) {
+            this.changeScene();
+        }
 
     }
 
