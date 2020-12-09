@@ -13,7 +13,7 @@ Alternatively we can also execute the jar file which isn't running jet.
 # SNMP-Browser
 ## Scan network
 The Browser is able to scan a whole network, this is also the default setting. If you want to scan a network, you have
-to insert the starting ip address, and the subnet of the network. Then a list of devices apperas which can be selected 
+to insert the starting ip address, and the subnet of the network. Then a list of devices appears which can be selected 
 to show the devices properties.
 
 ## Scan device

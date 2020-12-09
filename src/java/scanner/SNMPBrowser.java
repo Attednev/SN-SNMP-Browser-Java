@@ -1,8 +1,8 @@
 package scanner;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
 import org.soulwing.snmp.*;
+import standard.Main;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -17,6 +17,17 @@ public class SNMPBrowser {
 
     public static void initialize() throws IOException {
         SNMPBrowser.loadMibFiles();
+        SNMPBrowser.createShutDownHook();
+    }
+
+    private static void createShutDownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                SnmpFactory.getInstance().close();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }));
     }
 
     private static void loadMibFiles() throws IOException {
@@ -100,15 +111,11 @@ public class SNMPBrowser {
     public static void startTrapListener() {
         SnmpListener listener = SnmpFactory.getInstance().newListener(10162, mib);
         listener.addHandler(event -> {
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("SNMP-Trap");
-                alert.setHeaderText(null);
-                alert.setContentText("" + event);
-                System.out.println(event.getSubject().getPeer() + "[" + event.getSubject().getType() + "]: " + event.getSubject().getVarbinds().asList().get(1));
-                alert.show();
-            });
-
+            Platform.runLater(() -> Main.alertBox(
+                    event.getSubject().getPeer() + "[" +
+                    event.getSubject().getType() + "]: " +
+                    event.getSubject().getVarbinds().asList().get(1))
+            );
             return true;
         });
     }
