@@ -4,10 +4,8 @@ import javafx.application.Platform;
 import org.soulwing.snmp.*;
 import standard.Main;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -15,7 +13,7 @@ public class SNMPBrowser {
     private final static Mib mib = MibFactory.getInstance().newMib();
     private static SnmpCallback<VarbindCollection> onResponseFunction;
 
-    public static void initialize() throws IOException {
+    public static void initialize() throws IOException, URISyntaxException {
         SNMPBrowser.loadMibFiles();
         SNMPBrowser.createShutDownHook();
     }
@@ -30,8 +28,8 @@ public class SNMPBrowser {
         }));
     }
 
-    private static void loadMibFiles() throws IOException {
-        BufferedReader fr = new BufferedReader(new FileReader("src/resources/Mib-List.txt"));
+    private static void loadMibFiles() throws IOException, URISyntaxException {
+        BufferedReader fr = new BufferedReader(new FileReader(new File(SNMPBrowser.class.getResource("/Mib-List.txt").toURI())));
         String module;
         while ((module = fr.readLine()) != null) {
             try {
@@ -70,7 +68,7 @@ public class SNMPBrowser {
     }
 
     private static boolean sendAsyncSNMPRequest(String address, String community) {
-        return sendAsyncSNMPRequest(address, community, "sysName", "sysUpTime", "sysContact", "sysLocation", "sysDescr");
+        return SNMPBrowser.sendAsyncSNMPRequest(address, community, "sysName", "sysUpTime", "sysContact", "sysLocation", "sysDescr");
     }
 
     public static boolean sendAsyncSNMPRequest(String address, String community, String... oid) {

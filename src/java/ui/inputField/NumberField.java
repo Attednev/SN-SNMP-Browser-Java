@@ -1,19 +1,25 @@
 package ui.inputField;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Font;
 
 public class NumberField extends TextField {
+    private final IntegerProperty maxDigits = new SimpleIntegerProperty();
+
+    public NumberField() {
+        setupListener();
+    }
 
     public NumberField(int maxDigits) {
-        super();
+        this.maxDigits.setValue(maxDigits);
+    }
+
+    private void setupListener() {
         this.setFont(new Font("Arial", 25));
-        this.setMinWidth(90.0 / 2.7 * maxDigits);
-        this.setMinHeight(40);
-        this.setMaxWidth(82.0 / 2.7 * maxDigits);
-        this.setMaxHeight(40);
         this.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.length() > maxDigits) {
+            if (newValue.length() > this.maxDigits.get()) {
                 this.setText(oldValue);
             } else {
                 try {
@@ -26,6 +32,14 @@ public class NumberField extends TextField {
                 }
             }
         });
+    }
+
+    public final void setMaxDigits(int maxDigits) {
+        this.maxDigits.set(maxDigits);
+    }
+
+    public final int getMaxDigits() {
+        return this.maxDigits.get();
     }
 
 }

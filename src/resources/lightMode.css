@@ -3,11 +3,11 @@
     -fx-background-color: transparent;
 }
 
-#wrapper {
+.wrapper {
     -fx-border-color: black;
 }
 
-#root {
+.root {
     -fx-background-color: lightgray;
 }
 
@@ -30,36 +30,38 @@
     -fx-border-color: black;
 }
 
-#deviceList {
+.deviceList {
     -fx-border-color: black;
     -fx-padding: 5 0;
 }
 
-#deviceList .scroll-bar:horizontal, #deviceList .scroll-bar:vertical {
+.deviceList .scroll-bar:horizontal,
+.deviceList .scroll-bar:vertical {
     -fx-background-color: transparent;
 }
 
-#deviceList .increment-button ,#deviceList .decrement-button {
+.deviceList .increment-button,
+.deviceList .decrement-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
 }
 
-#deviceList .scroll-bar:horizontal .track ,
-#deviceList .scroll-bar:vertical .track{
+.deviceList .scroll-bar:horizontal .track ,
+.deviceList .scroll-bar:vertical .track {
     -fx-background-color: transparent;
     -fx-border-color: black;
     -fx-background-radius: 0em;
 }
 
-#deviceList .scroll-bar:horizontal .thumb,
-#deviceList .scroll-bar:vertical .thumb {
+.deviceList .scroll-bar:horizontal .thumb,
+.deviceList .scroll-bar:vertical .thumb {
     -fx-background-color:derive(black,90%);
     -fx-background-insets: 0, 0, 0;
     -fx-background-radius: 0em;
 
 }
 
-#deviceList *:selected {
+.deviceList *:selected {
     -fx-background-color: turquoise;
     -fx-border-color: black;
 }

@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
-<VBox fx:id="root" alignment="CENTER" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+<?import ui.inputField.IPField?>
+<?import ui.inputField.NumberField?>
+<?import ui.buttons.TextButton?>
+<?import ui.buttons.SlideButton?>
+<VBox styleClass="root" alignment="CENTER" xmlns="http://javafx.com/javafx/1.8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="standard.Controller">
-    <VBox fx:id="wrapper" alignment="CENTER" minWidth="800" maxWidth="800" minHeight="600" maxHeight="600">
+    <VBox styleClass="wrapper" alignment="CENTER" minWidth="800" maxWidth="800" minHeight="600" maxHeight="600">
         <!-- Header -->
-        <BorderPane fx:id="header">
+        <BorderPane>
             <left>
-                <Button fx:id="backButton" style="-fx-font-size: 18px" visible="false" minHeight="35" minWidth="115"
-                        onMouseClicked="#backButtonPressed">
-                    Back
-                </Button>
+                <Button fx:id="backButton" style="-fx-font-size: 18px" visible="false" minHeight="35" minWidth="115" onMouseClicked="#changeScene">Back</Button>
             </left>
-            <right />
+            <right>
+                <SlideButton minWidth="90" minHeight="35" maxWidth="90" maxHeight="35" prefWidth="90" prefHeight="35" onMouseClicked="#changeTheme"/>
+            </right>
             <VBox.margin> <Insets bottom="25.0" left="25.0" right="25.0" top="5.0" /> </VBox.margin>
         </BorderPane>
 
@@ -24,23 +26,27 @@
             <!-- Main menu -->
             <VBox fx:id="menuVBox" alignment="CENTER" spacing="40">
                 <!-- Buttons -->
-                <HBox fx:id="textButtons" alignment="TOP_CENTER" maxHeight="50.0" maxWidth="-Infinity" spacing="10" />
+                <HBox fx:id="textButtons" alignment="TOP_CENTER" maxHeight="50.0" maxWidth="-Infinity" spacing="10">
+                    <!-- ... -->
+                    <!-- ... -->
+                    <!-- ... -->
+                    <!-- ... -->
+                </HBox>
 
                 <!-- Inputs -->
                 <VBox alignment="CENTER" spacing="20">
                     <HBox alignment="CENTER" spacing="5">
                         <VBox alignment="CENTER" maxWidth="450" minWidth="450" spacing="2">
                             <Label style="-fx-font-size: 25">Address</Label>
-                            <HBox fx:id="addressContainer" alignment="CENTER" spacing="2" />
-                        </VBox>
-                        <VBox fx:id="subnetParent" alignment="CENTER" maxWidth="100" minWidth="100" spacing="2">
-                            <Label style="-fx-font-size: 25">Subnet</Label>
-                            <HBox fx:id="subnetContainer" alignment="CENTER" spacing="2" />
+                            <HBox  alignment="CENTER" spacing="2">
+                                <IPField fx:id="ipField" hasMask="true"/>
+                            </HBox>
                         </VBox>
                     </HBox>
                     <HBox alignment="CENTER" spacing="10">
                         <Label style="-fx-font-size: 25">Community</Label>
-                        <TextField fx:id="communityField" maxHeight="40" maxWidth="200" minHeight="40" minWidth="200" style="-fx-font-size: 20">public</TextField>
+                        <TextField fx:id="communityField" maxHeight="40" maxWidth="200" minHeight="40" minWidth="200"
+                                   style="-fx-font-size: 20">public</TextField>
                     </HBox>
                     <Button minWidth="400" onAction="#startSNMPProcess" style="-fx-font-size: 20; -fx-cursor: HAND">Next</Button>
                 </VBox>
@@ -51,7 +57,7 @@
                 <!-- Device list -->
                 <VBox>
                     <Label>Devices</Label>
-                    <ListView fx:id="deviceList" maxWidth="177" />
+                    <ListView fx:id="deviceList" styleClass="deviceList" maxWidth="177" />
                     <HBox.margin> <Insets left="25.0" /> </HBox.margin>
                 </VBox>
                 <!-- Property table -->
@@ -70,7 +76,7 @@
             <Label style="-fx-font-size: 18px">Custom OID or MIB:</Label>
             <TextField fx:id="customOIDInput" minWidth="270.0" style="-fx-font-size: 18px" />
             <Button onAction="#sendCustomRequest" style="-fx-font-size: 18px">Send</Button>
-            <VBox.margin> <Insets right="25.0" top="18" /> </VBox.margin>
+            <VBox.margin> <Insets right="25.0" top="7" /> </VBox.margin>
         </HBox>
     </VBox>
 </VBox>

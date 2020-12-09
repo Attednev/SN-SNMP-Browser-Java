@@ -26,10 +26,9 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/Scene.fxml"));
-        scene = new Scene(root, 800, 600);
-        scene.getStylesheets().add("file:src/resources/lightMode.css");
+        Main.scene = new Scene(root, 800, 600);
+        Main.scene.getStylesheets().add("file:src/resources/lightMode.css");
         primaryStage.setScene(scene);
-      //  primaryStage.setResizable(false);
         primaryStage.setTitle("SNMP - Browser");
         primaryStage.show();
     }
