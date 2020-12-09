@@ -70,7 +70,7 @@ public class SNMPBrowser {
     }
 
     private static boolean sendAsyncSNMPRequest(String address, String community) {
-        return sendAsyncSNMPRequest(address, community, "sysName", "sysUpTime");
+        return sendAsyncSNMPRequest(address, community, "sysName", "sysUpTime", "sysContact", "sysLocation", "sysDescr");
     }
 
     public static boolean sendAsyncSNMPRequest(String address, String community, String... oid) {
@@ -85,7 +85,7 @@ public class SNMPBrowser {
 
         ArrayList<String> list = new ArrayList<>();
         Collections.addAll(list, oid);
-        list.add("ipAdEntAddr");
+        list.add(0, "ipAdEntAddr");
 
         try {
             context.asyncGetNext(SNMPBrowser.onResponseFunction, list);

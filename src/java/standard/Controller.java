@@ -5,6 +5,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
@@ -38,6 +39,9 @@ public class Controller {
     public ListView<String> deviceList;
     public TableView<Pair<String, String>> propertyTable;
 
+    public BorderPane header;
+    public VBox wrapper;
+
     private String currentDisplayedDevice = "";
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
@@ -60,7 +64,8 @@ public class Controller {
     private void addDarkModeButton() {
         SlideButton btn = new SlideButton(90, 35);
         btn.onAction(() -> changeTheme(btn.isOn()));
-        this.buttonContainer.getChildren().add(btn);
+        //this.buttonContainer.getChildren().add(btn);
+        this.header.setRight(btn);
     }
 
     private void addTextButtons() {

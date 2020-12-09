@@ -2,6 +2,11 @@
     -fx-text-fill: white;
     -fx-background-color: transparent;
 }
+
+#wrapper {
+    -fx-border-color: white;
+}
+
 #root {
     -fx-background-color: rgb(50, 50, 50);
 }

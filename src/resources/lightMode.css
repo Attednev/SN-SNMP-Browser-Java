@@ -2,6 +2,11 @@
     -fx-text-fill: black;
     -fx-background-color: transparent;
 }
+
+#wrapper {
+    -fx-border-color: black;
+}
+
 #root {
     -fx-background-color: lightgray;
 }

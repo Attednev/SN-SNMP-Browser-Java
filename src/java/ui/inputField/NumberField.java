@@ -13,11 +13,11 @@ public class NumberField extends TextField {
         this.setMaxWidth(82.0 / 2.7 * maxDigits);
         this.setMaxHeight(40);
         this.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (this.getText().length() > maxDigits) {
-                this.setText(this.getText().substring(0, maxDigits));
+            if (newValue.length() > maxDigits) {
+                this.setText(oldValue);
             } else {
                 try {
-                    if (!this.getText().equals("")) {
+                    if (!newValue.equals("")) { // Throw an error fo we enter a char which results in the old value
                         Integer.parseInt(this.getText());
                     }
                     this.setText(newValue);
