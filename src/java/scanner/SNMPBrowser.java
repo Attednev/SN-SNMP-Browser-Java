@@ -1,5 +1,6 @@
 package scanner;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.soulwing.snmp.*;
 
@@ -97,23 +98,18 @@ public class SNMPBrowser {
     }
 
     public static void startTrapListener() {
-        new Thread(() -> {
-            SnmpListener listener = SnmpFactory.getInstance().newListener(10162, mib);
-            try {
-                listener.addHandler(event -> {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("SNMP-Trap");
-                    alert.setHeaderText(null);
-                    alert.setContentText("" + event);
-                    alert.show();
-                    return true;
-                });
-                Thread.sleep(60000L);
-            } catch (InterruptedException e) {
-                System.err.println("<SNMP-Browser> Stopped listening for Trap packages due to an interrupt");
-            } finally {
-                listener.close();
-            }
+        SnmpListener listener = SnmpFactory.getInstance().newListener(10162, mib);
+        listener.addHandler(event -> {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("SNMP-Trap");
+                alert.setHeaderText(null);
+                alert.setContentText("" + event);
+                System.out.println(event.getSubject().getPeer() + "[" + event.getSubject().getType() + "]: " + event.getSubject().getVarbinds().asList().get(1));
+                alert.show();
+            });
+
+            return true;
         });
     }
 

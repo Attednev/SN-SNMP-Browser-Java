@@ -16,7 +16,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("Scene.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/Scene.fxml"));
         scene = new Scene(root);
         scene.getStylesheets().add("file:src/resources/lightMode.css");
         primaryStage.setScene(scene);
