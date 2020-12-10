@@ -7,7 +7,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
-import org.soulwing.snmp.Varbind;
+import org.soulwing.snmp.SnmpEvent;
 import org.soulwing.snmp.VarbindCollection;
 import scanner.DeviceProperties;
 import scanner.SNMPBrowser;
@@ -17,9 +17,7 @@ import ui.inputField.IPField;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller {
     public HBox textButtons;
@@ -30,6 +28,8 @@ public class Controller {
     public Button backButton;
     public TextField communityField;
     public TextField customOIDInput;
+    public TextButton scanNetworkButton;
+    public TextButton scanDeviceButton;
     public ListView<String> deviceList;
     public TableView<Pair<String, String>> propertyTable;
     public IPField ipField;
@@ -38,56 +38,30 @@ public class Controller {
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
 
-// --- SETUP --- //
     public void initialize() throws IOException, URISyntaxException {
-        this.addInitialSceneElements();
+        this.setupScene();
         SNMPBrowser.initialize();
         SNMPBrowser.startTrapListener();
     }
 
-    private void addInitialSceneElements() {
-        this.addTextButtons();
+    private void setupScene() {
         this.setDeviceListListener();
         this.initializePropertyTable();
-    }
-
-    private void addTextButtons() {
-        String[] captions = {"Scan network", "Scan device"};
-        for (AtomicInteger i = new AtomicInteger(0); i.get() < captions.length; i.set(i.get() + 1)) {
-            TextButton btn = new TextButton(captions[i.get()]);
-            btn.setOnMouseClicked(e -> {
-                this.scanNetwork = (i.get() == 0);
-
-                //this.subnetParent.setVisible(this.scanNetwork);
-                //for (Node t : this.textButtons.getChildren()) {
-                //    ((TextButton)t).clear();
-                //}
-                btn.highlight();
-            });
-            if (i.get() == 0) {
-                btn.highlight();
-            }
-            this.textButtons.getChildren().add(btn);
-        }
     }
 
     private void setDeviceListListener() {
         this.deviceList.getSelectionModel().selectedItemProperty().addListener(
             (ObservableValue<? extends String> ov, String oldVal, String newVal) -> {
                 if (newVal != null) {
-                    //newVal.setStyle("-fx-font-size: 16px; -fx-font-weight: bold");
-                    this.currentDisplayedDevice = newVal;//.getText();
+                    this.currentDisplayedDevice = newVal;
+                    this.updatePropertyTable();
                 }
-                if (oldVal != null) {
-                    //oldVal.setStyle("-fx-font-size: 16px");
-                }
-                this.updatePropertyTable();
             }
         );
     }
 
     private void initializePropertyTable() {
-        double[] sizes = {150, 395};
+        double[] sizes = {150, 2000};
         String[] texts = {"Mib", "Value"};
         String[] varNames = {"key", "value"};
         for (int i = 0; i < texts.length; i++) {
@@ -98,7 +72,25 @@ public class Controller {
         }
     }
 
-// --- -------- ------------ -------- --- //
+    private void updatePropertyTable() {
+    for (DeviceProperties device : this.devices) {
+        if (device.getIp().equals(this.currentDisplayedDevice)) {
+            this.propertyTable.getItems().clear();
+            for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
+                this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
+            }
+            return;
+        }
+    }
+}
+
+    public void changeScanMode() {
+        this.scanNetworkButton.setIsHighlighted(!this.scanNetworkButton.getIsHighlighted());
+        this.scanDeviceButton.setIsHighlighted(!this.scanDeviceButton.getIsHighlighted());
+        this.scanNetwork = this.scanNetworkButton.getIsHighlighted();
+        this.ipField.setHasMask(this.scanNetwork);
+    }
+
     public void changeTheme() {
         String path = "file:src/resources/" +
                 (Main.getScene().getStylesheets().get(0).contains("light") ? "dark" : "light") + "Mode.css";
@@ -110,17 +102,9 @@ public class Controller {
         this.scanHBox.setVisible(!this.scanHBox.isVisible());
         this.backButton.setVisible(this.scanHBox.isVisible());
         this.customOIDBox.setVisible(this.scanHBox.isVisible());
-    }
-
-    private void updatePropertyTable() {
-        for (DeviceProperties device : this.devices) {
-            if (device.getIp().equals(this.currentDisplayedDevice)) {
-                this.propertyTable.getItems().clear();
-                for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
-                    this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
-                }
-                return;
-            }
+        if (menuVBox.isVisible()) {
+            this.devices.clear();
+            this.deviceList.getItems().clear();
         }
     }
 
@@ -131,44 +115,33 @@ public class Controller {
     }
 
     public void startSNMPProcess() {
-        SNMPBrowser.onResponse(snmpEvent -> {
-            VarbindCollection result = snmpEvent.getResponse().get();
-
-            HashMap<String, String> map = new HashMap<>();
-            for (Varbind v : result) {
-                String key = v.getName().split("\\.")[0];
-                String value = v.asString();
-                map.put(key, value);
-            }
-            String ip = String.format("%s", result.get("ipAdEntAddr"));
-            DeviceProperties device = new DeviceProperties(ip, map);
-
-            Platform.runLater(() -> {
-                for (int i = 0; i < this.deviceList.getItems().size(); i++) {
-                    if (this.deviceList.getItems().get(i).equals(ip)) {
-                        this.devices.get(i).getProperties().putAll(device.getProperties());
-                        if (this.currentDisplayedDevice.equals(ip)) {
-                            this.updatePropertyTable();
-                        }
-                        return;
-                    }
-                }
-                this.deviceList.getItems().add(ip);
-                this.devices.add(device);
-            });
-            snmpEvent.getContext().close();
-        });
-
-
-        String ip = this.ipField.getIP();//this.getIPFromScene();
-        String community = this.communityField.getText();
-        String netmask = this.ipField.getMask();///((NumberField)this.subnetContainer.getChildren().get(1)).getText();
-        this.devices.clear();
-        this.deviceList.getItems().clear();
-        if (SNMPBrowser.startScan(ip, community, netmask, this.scanNetwork)) {
+        SNMPBrowser.onResponse(this::handleResponse);
+        if (SNMPBrowser.startScan(this.ipField.getIP(),  this.communityField.getText(), this.ipField.getMask(), this.scanNetwork)) {
             this.changeScene();
         }
+    }
 
+    private void handleResponse(SnmpEvent<VarbindCollection> snmpEvent) {
+        DeviceProperties properties = new DeviceProperties();
+        VarbindCollection result = snmpEvent.getResponse().get();
+        properties.setIp(result.get("ipAdEntAddr").asString());
+        result.forEach(v -> properties.getProperties().put(v.getName().split("\\.")[0], v.asString()));
+
+        Platform.runLater(() -> this.addPropertiesToList(properties));
+        snmpEvent.getContext().close();
+    }
+
+    private void addPropertiesToList(DeviceProperties properties) {
+        Platform.runLater(() -> {
+            for (DeviceProperties d : this.devices) {
+                if (d.getIp().equals(properties.getIp())) {
+                    d.getProperties().putAll(properties.getProperties());
+                    this.updatePropertyTable();
+                }
+            }
+            this.devices.add(properties);
+            this.deviceList.getItems().add(properties.getIp());
+        });
     }
 
 }

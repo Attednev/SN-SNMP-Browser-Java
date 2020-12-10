@@ -9,7 +9,7 @@ public class NumberField extends TextField {
     private final IntegerProperty maxDigits = new SimpleIntegerProperty();
 
     public NumberField() {
-        setupListener();
+        this.setupListener();
     }
 
     public NumberField(int maxDigits) {

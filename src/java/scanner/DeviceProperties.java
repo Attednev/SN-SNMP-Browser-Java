@@ -4,12 +4,18 @@ import java.util.HashMap;
 
 public class DeviceProperties {
 
-    private final String ip;
-    private final HashMap<String, String> properties;
+    private String ip;
+    private HashMap<String, String> properties = new HashMap<>();
+
+    public DeviceProperties() {}
 
     public DeviceProperties(String ip, HashMap<String, String> properties) {
         this.ip = ip;
         this.properties = properties;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public String getIp() {

@@ -27,10 +27,10 @@
             <VBox fx:id="menuVBox" alignment="CENTER" spacing="40">
                 <!-- Buttons -->
                 <HBox fx:id="textButtons" alignment="TOP_CENTER" maxHeight="50.0" maxWidth="-Infinity" spacing="10">
-                    <!-- ... -->
-                    <!-- ... -->
-                    <!-- ... -->
-                    <!-- ... -->
+                    <TextButton fx:id="scanNetworkButton" minHeight="75" maxHeight="75" minWidth="300" maxWidth="300"
+                                isHighlighted="true" onMouseClicked="#changeScanMode">Scan network</TextButton>
+                    <TextButton fx:id="scanDeviceButton" minHeight="75" maxHeight="75" minWidth="300" maxWidth="300"
+                                onMouseClicked="#changeScanMode">Scan device</TextButton>
                 </HBox>
 
                 <!-- Inputs -->
@@ -63,7 +63,7 @@
                 <!-- Property table -->
                 <VBox>
                     <Label>Properties</Label>
-                    <TableView fx:id="propertyTable" minWidth="545.0" styleClass="table-view">
+                    <TableView fx:id="propertyTable" minWidth="545.0" maxWidth="545.0" styleClass="table-view">
                         <placeholder> <Label style="-fx-font-size: 18px">No device selected</Label> </placeholder>
                     </TableView>
                     <HBox.margin> <Insets bottom="10.0" left="25.0" /> </HBox.margin>
