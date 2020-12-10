@@ -79,7 +79,11 @@ public class SNMPBrowser {
         target.setAddress(System.getProperty("tnm4j.agent.address", address));
         target.setCommunity(System.getProperty("tnm4j.agent.community", community));
 
-        SnmpContext context = SnmpFactory.getInstance().newContext(target, mib);
+        SimpleSnmpTargetConfig config = new SimpleSnmpTargetConfig();
+        config.setTimeout(2000);
+        config.setRetries(1);
+
+        SnmpContext context = SnmpFactory.getInstance().newContext(target, mib, config, null);
 
         ArrayList<String> list = new ArrayList<>();
         Collections.addAll(list, oid);

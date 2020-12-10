@@ -5,13 +5,16 @@ import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class SlideButton extends StackPane {
-    private boolean on = false;
+    private boolean on = true;
     private Circle slider;
     private Rectangle background;
 
@@ -48,6 +51,10 @@ public class SlideButton extends StackPane {
                         new Stop(1, Color.rgb(213, 213, 213)))
         );
         this.getChildren().addAll(foundationBorder, this.background, slider);
+        if (this.on) {
+            this.on = false;
+            this.update();
+        }
     }
 
     private void update() {
@@ -64,5 +71,6 @@ public class SlideButton extends StackPane {
         ParallelTransition pt = new ParallelTransition(tt, ft);
         pt.play();
     }
+
 
 }
