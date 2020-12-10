@@ -4,8 +4,10 @@ import javafx.application.Platform;
 import org.soulwing.snmp.*;
 import standard.Main;
 
-import java.io.*;
-import java.net.URISyntaxException;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -13,7 +15,7 @@ public class SNMPBrowser {
     private final static Mib mib = MibFactory.getInstance().newMib();
     private static SnmpCallback<VarbindCollection> onResponseFunction;
 
-    public static void initialize() throws IOException, URISyntaxException {
+    public static void initialize() throws IOException {
         SNMPBrowser.loadMibFiles();
         SNMPBrowser.createShutDownHook();
     }
@@ -28,8 +30,8 @@ public class SNMPBrowser {
         }));
     }
 
-    private static void loadMibFiles() throws IOException, URISyntaxException {
-        BufferedReader fr = new BufferedReader(new FileReader(new File(SNMPBrowser.class.getResource("/Mib-List.txt").toURI())));
+    private static void loadMibFiles() throws IOException {
+        BufferedReader fr = new BufferedReader(new InputStreamReader(SNMPBrowser.class.getResourceAsStream("/Mib-List.txt")));
         String module;
         while ((module = fr.readLine()) != null) {
             try {

@@ -38,7 +38,7 @@ public class Controller {
     private boolean scanNetwork = true;
     private final ArrayList<DeviceProperties> devices = new ArrayList<>();
 
-    public void initialize() throws IOException, URISyntaxException {
+    public void initialize() throws IOException {
         this.setupScene();
         SNMPBrowser.initialize();
         SNMPBrowser.startTrapListener();

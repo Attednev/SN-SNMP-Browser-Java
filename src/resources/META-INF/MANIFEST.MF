@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Implementation-Title: SNMPBrowser
+Implementation-Version: v2
+JavaFX-Version: 8.0
+Created-By: Damian Gasser
+Main-Class: standard.Main
