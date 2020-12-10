@@ -61,7 +61,7 @@ public class Controller {
     }
 
     private void initializePropertyTable() {
-        double[] sizes = {150, 2000};
+        double[] sizes = {150, 395};
         String[] texts = {"Mib", "Value"};
         String[] varNames = {"key", "value"};
         for (int i = 0; i < texts.length; i++) {
