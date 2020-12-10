@@ -8,8 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 public class SNMPBrowser {
     private final static Mib mib = MibFactory.getInstance().newMib();
@@ -115,10 +114,13 @@ public class SNMPBrowser {
     public static void startTrapListener() {
         SnmpListener listener = SnmpFactory.getInstance().newListener(10162, mib);
         listener.addHandler(event -> {
+            StringBuilder message = new StringBuilder();
+            event.getSubject().getVarbinds().asList().forEach(v ->
+                    message.append("\t" + v.getName().split("\\.")[0] + " -> " + v.asString() + "\n"));
             Platform.runLater(() -> Main.alertBox(
-                    event.getSubject().getPeer() + "[" +
-                    event.getSubject().getType() + "]: " +
-                    event.getSubject().getVarbinds().asList().get(1))
+                "From: " + event.getSubject().getPeer().getAddress() + "\n" +
+                "Type: " + event.getSubject().getType() + "\n" +
+                "Message:\n" + message.toString())
             );
             return true;
         });

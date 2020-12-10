@@ -14,13 +14,14 @@ public class NumberField extends TextField {
 
     public NumberField(int maxDigits) {
         this.maxDigits.setValue(maxDigits);
+        this.setupListener();
     }
 
     private void setupListener() {
         this.setFont(new Font("Arial", 25));
         this.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.length() > this.maxDigits.get()) {
-                this.setText(oldValue);
+                this.setText(newValue.substring(0, this.maxDigits.get()));
             } else {
                 try {
                     if (!newValue.equals("")) { // Throw an error fo we enter a char which results in the old value

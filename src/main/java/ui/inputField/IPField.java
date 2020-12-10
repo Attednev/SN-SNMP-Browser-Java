@@ -50,11 +50,14 @@ public class IPField extends HBox {
 
     public String getIP() {
         StringBuilder ip = new StringBuilder();
-        for (Node n : this.getChildren()) {
-            if (n instanceof NumberField) {
-                ip.append(((NumberField) n).getText());
-            } else {
-                ip.append(".");
+        for (int i = 0; i < this.getChildren().size(); i++) {
+            Node n = this.getChildren().get(i);
+            if (this.hasMask.get() || i < 7) {
+                if (n instanceof NumberField) {
+                    ip.append(((NumberField) n).getText());
+                } else {
+                    ip.append(".");
+                }
             }
         }
         return ip.toString();

@@ -15,7 +15,7 @@ import ui.buttons.TextButton;
 import ui.inputField.IPField;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -92,9 +92,9 @@ public class Controller {
     }
 
     public void changeTheme() {
-        String path = "file:src/resources/" +
-                (Main.getScene().getStylesheets().get(0).contains("light") ? "dark" : "light") + "Mode.css";
-        Main.getScene().getStylesheets().set(0, path);
+        boolean isDarkMode = Main.getScene().getStylesheets().get(0).contains("dark");
+        URL url = Controller.class.getResource("/" + (isDarkMode ? "light" : "dark") + "Mode.css");
+        Main.getScene().getStylesheets().set(0, url.toString());
     }
 
     public void changeScene() {
@@ -102,6 +102,8 @@ public class Controller {
         this.scanHBox.setVisible(!this.scanHBox.isVisible());
         this.backButton.setVisible(this.scanHBox.isVisible());
         this.customOIDBox.setVisible(this.scanHBox.isVisible());
+        this.propertyTable.getItems().clear();
+        this.currentDisplayedDevice = "";
         if (menuVBox.isVisible()) {
             this.devices.clear();
             this.deviceList.getItems().clear();
@@ -132,16 +134,15 @@ public class Controller {
     }
 
     private void addPropertiesToList(DeviceProperties properties) {
-        Platform.runLater(() -> {
-            for (DeviceProperties d : this.devices) {
-                if (d.getIp().equals(properties.getIp())) {
-                    d.getProperties().putAll(properties.getProperties());
-                    this.updatePropertyTable();
-                }
+        for (DeviceProperties d : this.devices) {
+            if (d.getIp().equals(properties.getIp())) {
+                d.getProperties().putAll(properties.getProperties());
+                this.updatePropertyTable();
+                return;
             }
-            this.devices.add(properties);
-            this.deviceList.getItems().add(properties.getIp());
-        });
+        }
+        this.devices.add(properties);
+        this.deviceList.getItems().add(properties.getIp());
     }
 
 }

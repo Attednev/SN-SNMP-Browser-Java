@@ -4,7 +4,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import ui.inputField.IPField?>
-<?import ui.inputField.NumberField?>
 <?import ui.buttons.TextButton?>
 <?import ui.buttons.SlideButton?>
 <VBox styleClass="root" alignment="CENTER" xmlns="http://javafx.com/javafx/1.8" xmlns:fx="http://javafx.com/fxml/1"
@@ -64,6 +63,9 @@
                 <VBox>
                     <Label>Properties</Label>
                     <TableView fx:id="propertyTable" minWidth="545.0" maxWidth="545.0" styleClass="table-view">
+                        <columnResizePolicy>
+                            <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY"/>
+                        </columnResizePolicy>
                         <placeholder> <Label style="-fx-font-size: 18px">No device selected</Label> </placeholder>
                     </TableView>
                     <HBox.margin> <Insets bottom="10.0" left="25.0" /> </HBox.margin>

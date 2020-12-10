@@ -27,7 +27,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/Scene.fxml"));
         Main.scene = new Scene(root, 800, 600);
-        Main.scene.getStylesheets().add("file:src/resources/darkMode.css");
+        Main.scene.getStylesheets().add(String.valueOf(getClass().getResource("/darkMode.css")));
         primaryStage.setScene(scene);
         primaryStage.setTitle("SNMP - Browser");
         primaryStage.show();
