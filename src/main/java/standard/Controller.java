@@ -12,6 +12,7 @@ import org.soulwing.snmp.VarbindCollection;
 import scanner.DeviceProperties;
 import scanner.SNMPBrowser;
 import ui.buttons.TextButton;
+import ui.dynamicTableView.DynamicTableView;
 import ui.inputField.IPField;
 
 import java.io.IOException;
@@ -73,16 +74,17 @@ public class Controller {
     }
 
     private void updatePropertyTable() {
-    for (DeviceProperties device : this.devices) {
-        if (device.getIp().equals(this.currentDisplayedDevice)) {
-            this.propertyTable.getItems().clear();
-            for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
-                this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
+        for (DeviceProperties device : this.devices) {
+            if (device.getIp().equals(this.currentDisplayedDevice)) {
+                this.propertyTable.getItems().clear();
+                for (Map.Entry<String, String> entry : device.getProperties().entrySet()) {
+                    this.propertyTable.getItems().add(new Pair<>(entry.getKey(), entry.getValue()));
+                }
+                DynamicTableView.autoFitTable(this.propertyTable);
+                return;
             }
-            return;
         }
     }
-}
 
     public void changeScanMode() {
         this.scanNetworkButton.setIsHighlighted(!this.scanNetworkButton.getIsHighlighted());

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>standard</groupId>
-    <artifactId>TP-SNMP-Browser-Java</artifactId>
+    <artifactId>SN-SNMP-Browser-Java</artifactId>
     <version>0.0.1</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

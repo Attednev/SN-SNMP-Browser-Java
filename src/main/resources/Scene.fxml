@@ -62,10 +62,7 @@
                 <!-- Property table -->
                 <VBox>
                     <Label>Properties</Label>
-                    <TableView fx:id="propertyTable" minWidth="545.0" maxWidth="545.0" styleClass="table-view">
-                        <columnResizePolicy>
-                            <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY"/>
-                        </columnResizePolicy>
+                    <TableView fx:id="propertyTable" minWidth="545.0" styleClass="table-view">
                         <placeholder> <Label style="-fx-font-size: 18px">No device selected</Label> </placeholder>
                     </TableView>
                     <HBox.margin> <Insets bottom="10.0" left="25.0" /> </HBox.margin>
